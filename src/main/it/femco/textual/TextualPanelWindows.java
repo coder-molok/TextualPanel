@@ -29,7 +29,6 @@ public class TextualPanelWindows implements TextualPanel {
         this(System.in, System.out);
     }
 
-    @Override
     public TextualPanel open(int columns, int rows) {
         maxWidth = columns;
         maxHeight= rows;
