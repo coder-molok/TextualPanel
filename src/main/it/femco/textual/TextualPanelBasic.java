@@ -6,27 +6,35 @@ import java.io.PrintStream;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+/**
+ * Motore di gestione del Panel principale.
+ *
+ * Non gestisce questioni pratiche come leggere informazioni dal sistema (configurazione)
+ * o dal terminale (dimensioni correnti) ma può accettare una configurazione pronta da usare.
+ *
+ * Anche l'input e l'output sono presi dalla configurazione per permettere una gestione specifica
+ * più fine, questo per contro rende necessario preparare sempre e comunque una configurazione
+ * per usare questa classe.
+ */
 public class TextualPanelBasic implements TextualPanel {
     private static final boolean FOR_CONFIGURATION = false;
     private static final boolean END_CONFIGURATION = true;
     private final InputStream sin;
-    private Scanner sinreader;
     private final PrintStream sout;
-    boolean configured = false;
-    private int maxWidth = 0;
-    private int maxHeight= 0;
-    private int overHeight = -1;
-    private boolean interrupted = true;
-    private boolean openresized = false;
+    protected Scanner sinreader;
+    protected boolean openresized = false;
+    protected TextualPanelConfiguration configuration = null;
 
 
-    public TextualPanelBasic(InputStream streamin, PrintStream streamout) {
-        this.sin = streamin;
-        this.sout= streamout;
+    public TextualPanelBasic(TextualPanelConfiguration config) {
+        this.configuration = config;
+        
+        this.sin = config.getInput();
+        this.sout= config.getOutput();
     }
 
     public TextualPanelBasic() {
-        this(System.in, System.out);
+        this(TextualPanelConfiguration.getUnconfigured());
     }
 
     public TextualPanel open(int columns, int rows) {
