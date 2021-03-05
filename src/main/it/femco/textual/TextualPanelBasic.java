@@ -182,7 +182,7 @@ public class TextualPanelBasic implements TextualPanel {
             } while (maxHeight < 0);
         } else {
             // get additional height
-            showConfiguration(FOR_CONFIGURATION,"How much rows you see over the grid? [0..number]");
+            showConfiguration(FOR_CONFIGURATION,"How many rows you see over the grid? [0..number]");
             while (overHeight==-1) {
                 try {
                     overHeight = sinreader.nextInt();
