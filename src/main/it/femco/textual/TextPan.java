@@ -12,7 +12,7 @@ public class TextPan {
 
             runDemo(tp);
         } else {
-            System.out.printf("Operative System '%s' not supported.", OS);
+            System.out.printf("Operating System '%s' not supported.\n\n", OS);
         }
     }
 
