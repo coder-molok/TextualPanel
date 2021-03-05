@@ -1,7 +1,6 @@
 package it.femco.textual;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * Configurazione su cui viene eseguito il panel.
@@ -10,12 +9,11 @@ import java.io.OutputStream;
 public class TextualPanelConfiguration {
     private final InputStream sin;
     private final PrintStream sout;
-    boolean configured = false;
+    private boolean configured = false;
     private int maxWidth = 0;
     private int maxHeight= 0;
     private int overHeight = -1;
     private boolean interrupted = true;
-    private boolean openresized = false;
 
 
     public TextualPanelConfiguration(InputStream streamin, PrintStream streamout) {
@@ -24,26 +22,34 @@ public class TextualPanelConfiguration {
     }
 
     public TextualPanelConfiguration(InputStream streamin, PrintStream streamout,
-                                    int maxwidth, int maxheight, int overheight,
-                                    int lineinterrupted) {
+                                     int maxwidth, int maxheight, int overheight,
+                                     boolean lineinterrupted) {
         this(streamin, streamout);
         
         this.maxWidth = maxwidth;
         this.maxHeight= maxheight;
-        this.overheight = overheight;
+        this.overHeight = overheight;
         this.interrupted= lineinterrupted;
     }
 
-    public TextualPanelConfiguration(InputStream configurationStream) {
-        // TODO read stream and valorize a properties object then get values
+    /**
+     * This method parses a character stream and produces a configuration.
+     * @param configurationStream
+     * @return the configuration in accordance with the read stream.
+     */
+    public static TextualPanelConfiguration getConfiguration(InputStream configurationStream) {
+        // TODO read stream and set a properties object then get values
+        return getUnconfigured();
     }
 
     /**
-     * Questo metodo statico permette di rimandare il caricamento della configurazione.
+     * This static method allows to postpone the configuration loading.
      */
     static public TextualPanelConfiguration getUnconfigured() {
-        BufferedInputOutputStream bs = new BufferedInputOutputStream();
-        return new TextualPanelConfiguration(new InputStream(bs), new PrintStream(bs));
+        byte[] buffer = new byte[10];
+        InputStream bsi = new ByteArrayInputStream(buffer);
+        OutputStream bso = new ByteArrayOutputStream(10);
+        return new TextualPanelConfiguration(bsi, new PrintStream(bso));
     }
 
     public OutputStream save() {
@@ -64,5 +70,21 @@ public class TextualPanelConfiguration {
 
     public int maxRows() {
         return maxHeight;
+    }
+
+    public boolean isConfigured() {
+        return this.configured;
+    }
+
+    public int overHeight() {
+        return this.overHeight;
+    }
+
+    public boolean isInterrupted() {
+        return this.interrupted;
+    }
+
+    public void validate(boolean configurationIsValid) {
+        this.configured = configurationIsValid;
     }
 }

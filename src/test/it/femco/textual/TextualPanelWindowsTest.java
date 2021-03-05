@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class TextualPanelWindowsTest {
-    public class ByteArrayDelayedInputStream extends InputStream {
+    public static class ByteArrayDelayedInputStream extends InputStream {
         List<byte[]> maindata = new ArrayList<>();
         int currentPos = 0;
         boolean stopStepMode = false;
@@ -68,11 +68,13 @@ public class TextualPanelWindowsTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
-        TextualPanel tp = new TextualPanelWindows(input, output);
+        TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
+
+        TextualPanel tp = new TextualPanelWindows(conf);
 
         TextualPanel opened = tp.open(10, 10);
 
-        assertTrue(baos.toString().indexOf("This will be your textual panel (press any key):")>-1);
+        assertTrue(baos.toString().contains("This will be your textual panel (press any key):"));
         assertSame(tp, opened);
         assertTrue(tp.isOpened());
     }
@@ -84,11 +86,13 @@ public class TextualPanelWindowsTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
-        TextualPanel tp = new TextualPanelWindows(input, output);
+        TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
+
+        TextualPanel tp = new TextualPanelWindows(conf);
 
         TextualPanel opened = tp.open(20, 20);
 
-        assertTrue(baos.toString().indexOf("This will be your textual panel (press any key):")>-1);
+        assertTrue(baos.toString().contains("This will be your textual panel (press any key):"));
         assertSame(tp, opened);
         assertTrue(tp.isOpened());
         assertEquals("Opened undersized", tp.getLastError());
