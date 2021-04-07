@@ -287,4 +287,14 @@ public class TextualPanelBasic implements TextualPanel {
     public int maxRows() {
         return height;
     }
+
+    @Override
+    public boolean configure(CharSequence s) {
+        return false;
+    }
+
+    @Override
+    public TextualPanelConfiguration getConfiguration() {
+        return null;
+    }
 }

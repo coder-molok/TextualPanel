@@ -100,4 +100,26 @@ public class TextualPanelWindowsTest {
         assertEquals(10, tp.maxRows());
     }
 
+    @Test
+    public void configuration() throws Exception {
+        String preemptedinput = "n\n15\nn\n10\n\n";
+        InputStream input = new ByteArrayDelayedInputStream(preemptedinput.getBytes());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream output = new PrintStream(new BufferedOutputStream(baos));
+
+        TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
+
+        TextualPanel tp = new TextualPanelWindows(conf);
+
+        assertTrue(tp.configure("."));
+
+        assertTrue(baos.toString().indexOf("This will be your textual panel (press ENTER):")>-1);
+        assertFalse(tp.isOpened());
+        assertEquals(0, tp.maxColumns());
+        assertEquals(0, tp.maxRows());
+        assertSame(conf, tp.getConfiguration());
+        assertEquals(15, tp.maxColumns());
+        assertEquals(10, tp.maxRows());
+    }
+
 }

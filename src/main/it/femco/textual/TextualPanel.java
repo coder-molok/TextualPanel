@@ -10,4 +10,8 @@ public interface TextualPanel {
     int maxColumns();
 
     int maxRows();
+
+    boolean configure(CharSequence s);
+
+    TextualPanelConfiguration getConfiguration();
 }

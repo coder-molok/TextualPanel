@@ -21,10 +21,11 @@ public class TextPan {
         } else {
             System.out.printf("Operating System '%s' not supported.\n\n", OS);
         }
-        runDemo(tp);
+
+        runDemoConfiguration(tp);
     }
 
-    private static void runDemo(TextualPanel tp) {
+    private static void runDemoConfiguration(TextualPanel tp) {
         tp.open(140, 40);
     }
 }
