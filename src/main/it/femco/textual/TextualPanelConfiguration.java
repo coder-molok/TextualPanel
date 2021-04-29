@@ -53,7 +53,7 @@ public class TextualPanelConfiguration {
     }
 
     public OutputStream save() {
-        // TODO create a stream with all the stringifyable values
+        // TODO create a stream with all the stringifiable values
         return null;
     }
     
@@ -86,5 +86,9 @@ public class TextualPanelConfiguration {
 
     public void validate(boolean configurationIsValid) {
         this.configured = configurationIsValid;
+    }
+
+    public boolean sizeFromOriginal() {
+        return true;
     }
 }
