@@ -1,5 +1,7 @@
 package it.femco.textual;
 
+import it.femco.textual.panel.TextualPanelActor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -15,6 +17,13 @@ import java.util.Scanner;
  * Anche l'input e l'output sono presi dalla configurazione per permettere una gestione specifica
  * più fine, questo per contro rende necessario preparare sempre e comunque una configurazione
  * per usare questa classe.
+ *
+ * La gerarchia delle implementazioni di {@link TextualPanel} prevede che la principale,
+ * questa, sia la più grezza nella gestione del buffer (ad ogni modifica ridisegna tutto)
+ * in modo che possa funzionare su un banale terminale a caratteri (anche una stampante se
+ * non consideriamo il consumo di carta e inchiostro un problema).
+ * Le estensioni specifiche di questa classe potranno introdurre ottimizzazioni nella gestione
+ * dello schermo.
  */
 public class TextualPanelBasic implements TextualPanel {
     private final InputStream sin;
@@ -23,6 +32,7 @@ public class TextualPanelBasic implements TextualPanel {
     protected boolean openresized = false;
     protected TextualPanelConfiguration configuration = null;
     protected int width = 0, height = 0;
+    protected TextualPanelActor paneltree;
 
 
     public TextualPanelBasic(TextualPanelConfiguration config) {
