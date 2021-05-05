@@ -3,7 +3,7 @@ package it.femco.textual;
 import java.io.*;
 
 /**
- * Configurazione su cui viene eseguito il panel.
+ * Configuration for a {@link TextualPanel} to work with.
  *
  */
 public class TextualPanelConfiguration {

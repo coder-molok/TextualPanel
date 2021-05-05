@@ -1,20 +1,25 @@
 package it.femco.textual.panel;
 
 /**
- * Rappresentazione degli oggetti che possono essere creati su un pannello testuale.
+ * Abstraction for the objects that can be created and placed on a textual panel.
  *
- * Una volta creati, gli attori possono essere spostati, nascosti, mostrati, sovrapposti,
- * ridimensionati e in generale recuperati e modificati in base alle loro peculiarità.
+ * Ones it was created, an Actor can be moved, hidden, showed, overlapped, resized,
+ * and generally it can be got back and controlled according to its definition.
  *
- * Gli attori saranno creati sempre dalla relativa Factory, non avranno quindi costruttori
- * pubblici, infatti devono essere creati dentro un pannello attivo e valido.
+ * Actors are always created by the textual panel (that in fact work as a Factory),
+ * they have no public constructors and must be instantiated into an active panel.
  *
- * Trattandosi di interfacce testuali, gli attori sono sempre composti di stringhe colorate,
- * ogni stringa può avere solo un colore di sfondo e uno di primopiano:
- * questi elementi atomici che compongono gli attori sono detti appunto 'atomi' .
+ * Since it's about textual interfaces, actors are always made by colored strings,
+ * each string has a background and a foreground color:
+ * these atomic elements are named 'textoms' from text and atoms.
  *
- * Gli attori sono organizzati ad albero, quando un attore cambia "internamente" notifica
- * le sue foglie di riadattarsi (
+ * Actors are organized in a tree structure, the leaf-branch relation implies that the
+ * 'leaf' actor can't write text out of the 'branch' actor space and if it move out
+ * of this space, it disappear.
+ * The structure begin with a 'root' actor that has to be a container and inherit the
+ * panel dimensions.
+ * The tree structure allow to implement an efficient observer-notification logic between
+ * elements, that notify each relative for modifications or other events.
  */
 public interface TextualPanelActor {
 }

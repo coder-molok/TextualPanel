@@ -31,7 +31,7 @@ public class ConfigurationTool {
         int overHeight = -1;
         int width=50, height=10;
 
-        // sondaggio iniziale??
+        // TODO sondaggio iniziale??
 
         showConfiguration(FOR_CONFIGURATION, String.format(
                 "Can you see the grid %d x %d ? [y/n]", width, height));

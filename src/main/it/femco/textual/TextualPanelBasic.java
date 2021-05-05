@@ -2,28 +2,26 @@ package it.femco.textual;
 
 import it.femco.textual.panel.TextualPanelActor;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
- * Motore di gestione del Panel principale.
+ * Engine for manage the main Panel.
  *
- * Non gestisce questioni pratiche come leggere informazioni dal sistema (configurazione)
- * o dal terminale (dimensioni correnti) ma può accettare una configurazione pronta da usare.
+ * This object don't manages low-level operations such as to read information from the system
+ * (e.g. the configuration) or from the terminal (e.g. the terminal properties, viewport dimensions)
+ * and can get an existent configuration to use.
  *
- * Anche l'input e l'output sono presi dalla configurazione per permettere una gestione specifica
- * più fine, questo per contro rende necessario preparare sempre e comunque una configurazione
- * per usare questa classe.
+ * The input stream and the output stream, also, are obtained from configuration, this allow
+ * a specific finer manage of the system; however this cause the need to prepare always a
+ * configuration to generate a working panel.
  *
- * La gerarchia delle implementazioni di {@link TextualPanel} prevede che la principale,
- * questa, sia la più grezza nella gestione del buffer (ad ogni modifica ridisegna tutto)
- * in modo che possa funzionare su un banale terminale a caratteri (anche una stampante se
- * non consideriamo il consumo di carta e inchiostro un problema).
- * Le estensioni specifiche di questa classe potranno introdurre ottimizzazioni nella gestione
- * dello schermo.
+ * The hierarchy of implementations of {@link TextualPanel} see this, the primary, as the
+ * simpler and lean in the display managing (for each modification, it redraw all the screen)
+ * for make it working on the simpler character device, even if it was a printer or similar.
+ * The classes that extends this to apply to a specific device/system can implements
+ * optimizations in the updates of the screen (the {@link TextualPanel#render()} method).
  */
 public class TextualPanelBasic implements TextualPanel {
     private final InputStream sin;
@@ -161,5 +159,10 @@ public class TextualPanelBasic implements TextualPanel {
     @Override
     public TextualPanelConfiguration getConfiguration() {
         return null;
+    }
+
+    @Override
+    public void render() {
+
     }
 }

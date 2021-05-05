@@ -24,7 +24,7 @@ public class TextualPanel {
     }
 
     public static it.femco.textual.TextualPanel getPanel(TextualPanelConfiguration config) {
-        // identifico il systema operativo
+        // identify the operating system
         String OS = System.getProperty("os.name");
         if (OS.toLowerCase().indexOf("win") >= 0) {
             log.info("Run on Windows...");

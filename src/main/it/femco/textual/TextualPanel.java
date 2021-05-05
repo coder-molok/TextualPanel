@@ -14,4 +14,9 @@ public interface TextualPanel {
     boolean configure(CharSequence s);
 
     TextualPanelConfiguration getConfiguration();
+
+    /**
+     * Update and draw recent/new modifications to the screen.
+     */
+    void render();
 }
