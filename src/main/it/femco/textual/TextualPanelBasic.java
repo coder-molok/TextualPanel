@@ -2,9 +2,11 @@ package it.femco.textual;
 
 import it.femco.textual.panel.TextualPanelActor;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Function;
 
 /**
  * Engine for manage the main Panel.
@@ -68,35 +70,6 @@ public class TextualPanelBasic implements TextualPanel {
         this.sout.flush();
 
         return this;
-    }
-
-    private void showRuler() {
-        // vert
-        for (int i = height; i > 2; i--) {
-            sout.printf("%3d", i);
-            if (i % 10 == 0) {
-                sout.print(" ==");
-            } else if (i % 5 == 0) {
-                sout.print(" -");
-            }
-            sout.println();
-        }
-        // horiz
-        for (int i = 1; i <= width; i++) {
-            if (i == 3) {
-                // print the vertical 2
-                sout.print(2);
-            }
-            if (i > 99 && i % 10 == 9) {
-                sout.print((int)Math.floor((i+1)/10.0));
-            }
-            if (i < 100 && i % 10 == 0) {
-                sout.print((int)Math.floor(i/10.0));
-            }
-        }
-        for (int i = 1; i <= width; i++) {
-            sout.print(i % 10);
-        }
     }
 
     private char showConfRuler(int x, int maxx, int y, int maxy, char ch) {
@@ -164,5 +137,54 @@ public class TextualPanelBasic implements TextualPanel {
     @Override
     public void render() {
 
+    }
+
+    @Override
+    public int rawprint(CharSequence text) {
+        this.sout.print(text.toString());
+        return text.length();
+    }
+
+    @Override
+    public char inputChar() {
+        try {
+            return Character.toLowerCase((char) this.sin.read());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return '\0';
+        }
+    }
+
+    @Override
+    public String inputString() {
+        String input = VOID_STRING;
+        try {
+            input = this.sinreader.nextLine();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return input;
+    }
+
+    @Override
+    public char inputYN(Function<Character, Integer> wrongInput) {
+        char response = VOID_CHAR;
+        while (response!='y' && response!='n') {
+            if (response!=VOID_CHAR && response!=NEWLINE_CHAR && response!=RETURN_CHAR) {
+                if (wrongInput!=null) {
+                    if (wrongInput.apply(response) > 0) {
+                        response = CANCEL_CHAR;
+                        break;
+                    }
+                }
+            }
+            try {
+                response = Character.toLowerCase((char) this.sin.read());
+            } catch (IOException e) {
+                e.printStackTrace();
+                response = VOID_CHAR;
+            }
+        }
+        return response;
     }
 }
