@@ -1,7 +1,5 @@
 package it.femco.textual.panel;
 
-import java.util.Observable;
-
 /**
  * @author Molok
  * @version 30/04/21 01:27

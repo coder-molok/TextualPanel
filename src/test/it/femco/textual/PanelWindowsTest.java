@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class TextualPanelWindowsTest {
+public class PanelWindowsTest {
     public static class ByteArrayDelayedInputStream extends InputStream {
         List<byte[]> maindata = new ArrayList<>();
         int currentPos = 0;
@@ -70,9 +70,9 @@ public class TextualPanelWindowsTest {
 
         TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
 
-        TextualPanel tp = new TextualPanelWindows(conf);
+        Panel tp = new PanelWindows(conf);
 
-        TextualPanel opened = tp.open(10, 10);
+        Panel opened = tp.open(10, 10);
 
         assertTrue(baos.toString().contains("This will be your textual panel (press any key):"));
         assertSame(tp, opened);
@@ -88,9 +88,9 @@ public class TextualPanelWindowsTest {
 
         TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
 
-        TextualPanel tp = new TextualPanelWindows(conf);
+        Panel tp = new PanelWindows(conf);
 
-        TextualPanel opened = tp.open(20, 20);
+        Panel opened = tp.open(20, 20);
 
         assertTrue(baos.toString().contains("This will be your textual panel (press any key):"));
         assertSame(tp, opened);
@@ -109,7 +109,7 @@ public class TextualPanelWindowsTest {
 
         TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
 
-        TextualPanel tp = new TextualPanelWindows(conf);
+        Panel tp = new PanelWindows(conf);
 
         assertTrue(tp.configure("."));
 

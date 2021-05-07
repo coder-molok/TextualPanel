@@ -19,13 +19,13 @@ import java.util.function.Function;
  * a specific finer manage of the system; however this cause the need to prepare always a
  * configuration to generate a working panel.
  *
- * The hierarchy of implementations of {@link TextualPanel} see this, the primary, as the
+ * The hierarchy of implementations of {@link Panel} see this, the primary, as the
  * simpler and lean in the display managing (for each modification, it redraw all the screen)
  * for make it working on the simpler character device, even if it was a printer or similar.
  * The classes that extends this to apply to a specific device/system can implements
- * optimizations in the updates of the screen (the {@link TextualPanel#render()} method).
+ * optimizations in the updates of the screen (the {@link Panel#render()} method).
  */
-public class TextualPanelBasic implements TextualPanel {
+public class PanelBasic implements Panel {
     private final InputStream sin;
     private final PrintStream sout;
     protected Scanner sinreader;
@@ -35,18 +35,18 @@ public class TextualPanelBasic implements TextualPanel {
     protected Actor paneltree;
 
 
-    public TextualPanelBasic(TextualPanelConfiguration config) {
+    public PanelBasic(TextualPanelConfiguration config) {
         this.configuration = config;
         // bring back streams here for convenience
         this.sin = config.getInput();
         this.sout= config.getOutput();
     }
 
-    public TextualPanelBasic() {
+    public PanelBasic() {
         this(TextualPanelConfiguration.getUnconfigured());
     }
 
-    public TextualPanel open(int columns, int rows) {
+    public Panel open(int columns, int rows) {
         width = columns;
         height = rows;
         sinreader = new Scanner(sin);
