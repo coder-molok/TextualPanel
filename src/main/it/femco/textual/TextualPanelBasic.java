@@ -1,6 +1,6 @@
 package it.femco.textual;
 
-import it.femco.textual.panel.TextualPanelActor;
+import it.femco.textual.panel.Actor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +32,7 @@ public class TextualPanelBasic implements TextualPanel {
     protected boolean openresized = false;
     protected TextualPanelConfiguration configuration = null;
     protected int width = 0, height = 0;
-    protected TextualPanelActor paneltree;
+    protected Actor paneltree;
 
 
     public TextualPanelBasic(TextualPanelConfiguration config) {
