@@ -183,6 +183,38 @@ public class TextualPanelBasic implements TextualPanel {
             } catch (IOException e) {
                 e.printStackTrace();
                 response = VOID_CHAR;
+                break;
+            }
+        }
+        return response;
+    }
+
+    @Override
+    public int inputUInteger(Function<CharSequence, Integer> wrongInput) {
+        String input = VOID_STRING;
+        int response=-2;
+        while (response<0) {
+            if (input!=VOID_STRING) {
+                if (wrongInput!=null) {
+                    if (wrongInput.apply(input) > 0) {
+                        response = -1;
+                        break;
+                    }
+                }
+            }
+            try {
+                input = this.sinreader.nextLine();
+                response = Integer.valueOf(input);
+                if (response < 0) {
+                    // not needed, but get in evindence the user error.
+                    response = -5;
+                }
+            } catch (ClassCastException cce) {
+                response = -4;
+            } catch (Exception e) {
+                e.printStackTrace();
+                response = -3;
+                break;
             }
         }
         return response;

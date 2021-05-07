@@ -72,4 +72,15 @@ public interface TextualPanel {
      * VOID_CHAR in case of errors, CANCEL_CHAR in case of 'wrongInput' stop.
      */
     char inputYN(Function<Character, Integer> wrongInput);
+    /**
+     * Wait for an unsigned integer number.
+     *
+     * Loop until the user inputs a valid positive integer.
+     * Any other input cause a 'wrongInput' call, with the input passed as parameter;
+     * 'wrongInput' can return an integer > 0 for stop iteration.
+     *
+     * @return an unsigned integer if a valid sequence of digits was given,
+     * -2 or below in case of errors, -1 in case of 'wrongInput' stop.
+     */
+    int inputUInteger(Function<CharSequence, Integer> wrongInput);
 }

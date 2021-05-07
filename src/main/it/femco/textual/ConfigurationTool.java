@@ -74,7 +74,11 @@ public class ConfigurationTool {
             // try to get max H and W
             panel.rawprint("Check this line ...");
             showHorizontalLine(width);
-            panel.rawprint("Is it broken on several linea?");
+            panel.rawprint("Is it broken on several lines?");
+            if ('y' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1)) {
+                panel.rawprint("Insert the maximum ascissa on the first line: ");
+                width = panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1));
+            }
             panel.rawprint("Check the maximum ascissa in this ruler ...");
 
 
