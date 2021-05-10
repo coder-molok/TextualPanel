@@ -45,17 +45,20 @@ public class ConfigurationTool {
                 if (response.length()==0
                 || !response.contains(",")
                 || response.split(",").length != 2) {
-                    panel.rawprint("it seems that your answer isn't correct, retry please ( cols,rows ): ");
+                    panel.rawprint(panel.newline+
+                            "it seems that your answer isn't correct, retry please ( cols,rows ): ");
                     continue;
                 }
                 if (response.split(",")[0].length()==0
                         || !response.split(",")[0].matches("\\d+")) {
-                    panel.rawprint("it seems that columns number isn't correct, retry please ( cols,rows ): ");
+                    panel.rawprint(panel.newline+
+                            "it seems that columns number isn't correct, retry please ( cols,rows ): ");
                     continue;
                 }
                 if (response.split(",")[1].length()==0
                         || !response.split(",")[1].matches("\\d+")) {
-                    panel.rawprint("it seems that rows number isn't correct, retry please ( cols,rows ): ");
+                    panel.rawprint(panel.newline+
+                            "it seems that rows number isn't correct, retry please ( cols,rows ): ");
                     continue;
                 }
                 width = Integer.valueOf(response.split(",")[0]);
@@ -65,39 +68,69 @@ public class ConfigurationTool {
         } else {
             panel.rawprint(panel.newline+"  A default value will be used to configure the panel.");
         }
-        panel.rawprint(String.format("Now a %d x %d panel will be configured. press a key to start");
+        panel.rawprint(panel.newline+
+                String.format("Now a %d x %d panel will be checked. press a key to start", width, height));
         panel.inputChar();
 
         showConfiguration(FOR_CONFIGURATION, String.format(
                 "Can you see the grid %d x %d ? [y/n]", width, height));
         if ('n' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1)) {
             // try to get max H and W
-            panel.rawprint("Check this line ...");
-            showHorizontalLine(width);
-            panel.rawprint("Is it broken on several lines?");
-            if ('y' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1)) {
-                panel.rawprint("Insert the maximum ascissa on the first line: ");
-                width = panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1));
-            }
-            panel.rawprint("Check the maximum ascissa in this ruler ...");
-
-
-
+            panel.rawprint(panel.newline+"Check this line ...");
             do {
-                try {
-                    width = sinreader.nextInt();
-                } catch (InputMismatchException e) {
-                    width = -1;
-                    try {
-                        sin.skip(sin.available());
-                        sinreader.skip(".*");
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        configurazioneValida = false;
+                showHorizontalLine(width);
+                panel.rawprint(panel.newline+"Is it broken on several lines?");
+                if ('y' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1)) {
+                    showHorizontalLineRuler(width);
+                    panel.rawprint(panel.newline+"Insert the maximum abscissa on the right: ");
+                    width = panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                    panel.rawprint(panel.newline+"Check it again ...");
+                } else {
+                    showHorizontalLineRuler(width);
+                    panel.rawprint(panel.newline+
+                            String.format("Is there room on the right of %d ?", width));
+                    if ('y' == panel.inputYN(c ->
+                            panel.rawprint("Only y or n (you can answer Y and then come back):")>0?0:1)) {
+                        panel.rawprint(panel.newline+
+                                "Insert the number of characters that may fill the gap "+
+                                "(use this ruler as reference): ");
+                        showHorizontalLineRuler(width, true, false);
+                        showHorizontalLineRuler(width, false, true);
+                        width += panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                        panel.rawprint(panel.newline+"Check it again ...");
+                    } else {
+                        break;
                     }
-                    sout.print("Only a valid number:");
                 }
-            } while (width < 0);
+            } while(true);
+            panel.rawprint(panel.newline+"this is the horizontal dimension of your panel: ");
+            showHorizontalRuler(width, false);
+
+            panel.rawprint("Check the next numbered column (press any key)");
+            panel.inputChar();
+            do {
+                showVerticalRuler(height, 2);
+                panel.rawprint("Does it fill the whole height?");
+                if ('y' == panel.inputYN(c -> panel.rawprint("Only y or n (answer 'n'+'n' to repeat):")>0?0:1)) {
+                    showVerticalRuler(height, 2);
+                    panel.rawprint("Insert the maximum ordinate at the top: ");
+                    int newheight = panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                    if (newheight == height) {
+                        break;
+                    }
+                    panel.rawprint("Check it again ...");
+                } else {
+                    panel.rawprint("Is there room at the bottom of this line ?");
+                    if ('y' == panel.inputYN(c ->
+                            panel.rawprint("Only y or n (you can answer Y and then come back):")>0?0:1)) {
+                        panel.rawprint("Insert the number of characters that may fill the gap: ");
+                        width += panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                        panel.rawprint("Check it again ...");
+                    }
+                }
+            } while(true);
+
+
             showConfiguration(FOR_CONFIGURATION,"Is the grid interrupted by blank lines? [y/n]");
             risposta = '\0';
             while (risposta!='y' && risposta!='n') {
@@ -212,7 +245,7 @@ public class ConfigurationTool {
      * Write a vertical ruler from bottom to top.
      * @param dim max number to start with, at the top.
      * @param stop (optional) min number to stop at, at the bottom.
-     *             if stop is not provide, it stop at 0.
+     *             if stop is not provide, it stop at 1.
      */
     private void showVerticalRuler(int dim, int stop) {
         for (int i = dim; i > 1 && i > stop; i--) {
@@ -232,20 +265,61 @@ public class ConfigurationTool {
     /**
      * Write an horizontal line of a specific length in a new line.
      *
+     * This function write a NL character at the end of the line
+     * to ensure the line is on an own line.
+     * Use the full form to control start and ending NLs.
      * @param dim the length to reach.
      */
     private void showHorizontalLine(int dim) {
-        panel.rawprint(panel.newline);
+        showHorizontalLine(dim, true, true);
+    }
+    private void showHorizontalLine(int dim, boolean startingNL, boolean endingNL) {
+        if (startingNL) panel.rawprint(panel.newline);
         for (int i=0; i<dim; i++) {
             panel.rawprint("-");
         }
+        if (endingNL) panel.rawprint(panel.newline);
+    }
+
+    /**
+     * Write an horizontal ruler of a specific length in a new line.
+     *
+     * Use the full form to control starting NL and the presence of numbers.
+     * @param dim the length to reach.
+     */
+    private void showHorizontalLineRuler(int dim) {
+        showHorizontalLineRuler(dim, true, true);
+    }
+    private void showHorizontalLineRuler(int dim, boolean startingNL, boolean numbered) {
         panel.rawprint(panel.newline);
+        for (int i=0; i<dim; i++) {
+            if (i % 5 == 0) {
+                if (i % 10 == 0)
+                    panel.rawprint("|");
+                else
+                    panel.rawprint("+");
+            } else if (numbered) {
+                if (i > 995 && i % 10 == 6) {
+                    panel.rawprint(String.valueOf(i+4 % 10000).substring(0,1));
+                } else if (i > 96 && i % 10 == 7) {
+                    panel.rawprint(String.valueOf(i+3 % 1000).substring(0,1));
+                } else if (i % 10 == 8) {
+                    panel.rawprint(String.valueOf(i+2 % 100).substring(0,1));
+                } else if (i % 10 == 9) {
+                    panel.rawprint("0");
+                } else
+                    panel.rawprint("-");
+            } else
+                panel.rawprint("-");
+        }
     }
 
     /**
      * Write an horizontal ruler from left to right.
      *
-     * The ruler take up at least two rows: one for the tens and the line,
+     * There is two types of ruler: one-liner and wide,
+     * see {@link ConfigurationTool#showHorizontalLineRuler(int)} for one-liner.
+     * The wide ruler take up at least two rows: one for the tens and the line,
      * second for the units.
      * If dim is grater then 99, lines will be 3: hundreds, tens and units,
      * and 4 with thousands; ruler don't manages correct dim over 9999.
