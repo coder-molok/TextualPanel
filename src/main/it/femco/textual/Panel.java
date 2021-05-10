@@ -1,7 +1,5 @@
 package it.femco.textual;
 
-import com.sun.org.apache.xpath.internal.objects.XString;
-
 import java.util.function.Function;
 
 /**
@@ -9,7 +7,7 @@ import java.util.function.Function;
  *
  * It is intended to provide a complete output solution for a non-CLI textual software.
  */
-public interface TextualPanel {
+public interface Panel {
     public final static char VOID_CHAR = '\0';
     public final static char NEWLINE_CHAR = '\n';
     public final static char RETURN_CHAR = '\r';
@@ -23,7 +21,7 @@ public interface TextualPanel {
      */
     public static String newline = System.lineSeparator();
 
-    TextualPanel open(int columns, int rows);
+    Panel open(int columns, int rows);
 
     boolean isOpened();
 

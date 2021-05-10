@@ -18,32 +18,32 @@ public class TextualPanel {
 
     public static void main(String[] args) {
         TextualPanelConfiguration conf = new TextualPanelConfiguration(System.in, System.out);
-        it.femco.textual.TextualPanel tp = TextualPanel.getPanel(conf);
+        Panel tp = TextualPanel.getPanel(conf);
 
         runDemo(tp);
     }
 
-    public static it.femco.textual.TextualPanel getPanel(TextualPanelConfiguration config) {
+    public static Panel getPanel(TextualPanelConfiguration config) {
         // identify the operating system
         String OS = System.getProperty("os.name");
         if (OS.toLowerCase().indexOf("win") >= 0) {
             log.info("Run on Windows...");
 
-            return new TextualPanelWindows(config);
+            return new PanelWindows(config);
 
         } else if (OS.toLowerCase().indexOf("linux") >= 0) {
             log.info("Run on Linux...");
 
-            return new TextualPanelLinux(config);
+            return new PanelLinux(config);
 
         } else {
             log.info("Operating System '"+OS+"' not supported, basic TP available.");
 
-            return new TextualPanelBasic(config);
+            return new PanelBasic(config);
         }
     }
 
-    private static void runDemo(it.femco.textual.TextualPanel tp) {
+    private static void runDemo(Panel tp) {
         tp.open(140, 40);
     }
 }

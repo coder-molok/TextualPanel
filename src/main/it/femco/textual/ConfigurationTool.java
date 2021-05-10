@@ -7,15 +7,15 @@ public class ConfigurationTool {
     private static final boolean FOR_CONFIGURATION = false;
     private static final boolean END_CONFIGURATION = true;
 
-    TextualPanel panel;
+    Panel panel;
     TextualPanelConfiguration configuration, old;
 
-    private ConfigurationTool(TextualPanel panel, TextualPanelConfiguration old) {
+    private ConfigurationTool(Panel panel, TextualPanelConfiguration old) {
         this.panel = panel;
         this.old = old;
     }
 
-    public static TextualPanelConfiguration doConfiguration(TextualPanel panel, TextualPanelConfiguration old) {
+    public static TextualPanelConfiguration doConfiguration(Panel panel, TextualPanelConfiguration old) {
         ConfigurationTool me = new ConfigurationTool(panel, old);
         return me.doConfiguration().getConfiguration();
     }
