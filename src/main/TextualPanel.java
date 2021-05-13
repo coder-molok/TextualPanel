@@ -1,5 +1,6 @@
 import it.femco.textual.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -8,7 +9,8 @@ public class TextualPanel {
 
     static Logger log = Logger.getLogger("TextualPanel");
     static {
-        String logfile = System.getProperty("java.io.tmpdir")+ "textualpanel.log";
+        String logfile = System.getProperty("java.io.tmpdir")+
+                File.separator + "textualpanel.log";
         try {
             log.addHandler(new FileHandler(logfile));
         } catch (IOException e) {

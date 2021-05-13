@@ -81,4 +81,13 @@ public interface Panel {
      * -2 or below in case of errors, -1 in case of 'wrongInput' stop.
      */
     int inputUInteger(Function<CharSequence, Integer> wrongInput);
+
+    /**
+     * Flush the current input buffer, then read a single char.
+     *
+     * Pay attention! if the input stream is a file, this method
+     * will flush all the stream and then it will wait forever.
+     * @return the last char read.
+     */
+    char waitAChar();
 }

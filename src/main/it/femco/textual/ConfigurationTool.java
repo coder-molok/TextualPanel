@@ -72,7 +72,7 @@ public class ConfigurationTool {
         }
         panel.rawprint(panel.newline+
                 String.format("Now a %d x %d panel will be checked. press a key to start", width, height));
-        panel.inputChar();
+        panel.waitAChar();
 
         do {
             // try to get max H and W

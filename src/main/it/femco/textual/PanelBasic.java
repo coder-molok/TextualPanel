@@ -130,6 +130,16 @@ public class PanelBasic implements Panel {
     }
 
     @Override
+    public char waitAChar() {
+        try {
+            while (this.sin.skip(this.sin.available())>0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return inputChar();
+    }
+
+    @Override
     public String inputString() {
         String input = VOID_STRING;
         try {
