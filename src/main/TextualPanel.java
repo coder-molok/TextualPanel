@@ -17,13 +17,13 @@ public class TextualPanel {
     }
 
     public static void main(String[] args) {
-        TextualPanelConfiguration conf = new TextualPanelConfiguration(System.in, System.out);
+        Configuration conf = new Configuration(System.in, System.out);
         Panel tp = TextualPanel.getPanel(conf);
 
         runDemo(tp);
     }
 
-    public static Panel getPanel(TextualPanelConfiguration config) {
+    public static Panel getPanel(Configuration config) {
         // identify the operating system
         String OS = System.getProperty("os.name");
         if (OS.toLowerCase().indexOf("win") >= 0) {

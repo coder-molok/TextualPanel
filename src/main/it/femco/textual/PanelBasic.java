@@ -30,12 +30,12 @@ public class PanelBasic implements Panel {
     private final PrintStream sout;
     protected Scanner sinreader;
     protected boolean openresized = false;
-    protected TextualPanelConfiguration configuration = null;
+    protected Configuration configuration = null;
     protected int width = 0, height = 0;
     protected Actor paneltree;
 
 
-    public PanelBasic(TextualPanelConfiguration config) {
+    public PanelBasic(Configuration config) {
         this.configuration = config;
         // bring back streams here for convenience
         this.sin = config.getInput();
@@ -43,7 +43,7 @@ public class PanelBasic implements Panel {
     }
 
     public PanelBasic() {
-        this(TextualPanelConfiguration.getUnconfigured());
+        this(Configuration.getUnconfigured());
     }
 
     public Panel open(int columns, int rows) {
@@ -70,32 +70,6 @@ public class PanelBasic implements Panel {
         this.sout.flush();
 
         return this;
-    }
-
-    private char showConfRuler(int x, int maxx, int y, int maxy, char ch) {
-        if (y == maxy) {
-            ch = '.';
-            if (x % 10 == 5) ch = ':';
-            if (x % 10 == 0) ch = '0';
-            if (x % 10 == 9) ch = (char) ('0'+(int)((x+1)/10));
-            if (x > 97) {
-                if (x % 10 == 8) ch = (char) ('0'+(int)((x+2)/100));
-                if (x % 10 == 9) ch = (char) ('0'+((int)((x+1)/10))% 10);
-            }
-        }
-        if (x == 3) ch = ' ';
-        if (x == 4) ch = '.';
-        int yPrint = height - y +1;
-        if ((y-1) % 3 == 0 && y != maxy) {
-            if (x == 4) {
-                ch = (char) ('0'+ yPrint % 10);
-            } else if (yPrint > 9 && x == 3) {
-                ch = (char) ('0'+((int)(yPrint/10))% 10);
-            } else if (yPrint > 99 && x == 2) {
-                ch = (char) ('0'+(int)(yPrint/100));
-            }
-        }
-        return ch;
     }
 
     @Override
@@ -130,7 +104,7 @@ public class PanelBasic implements Panel {
     }
 
     @Override
-    public TextualPanelConfiguration getConfiguration() {
+    public Configuration getConfiguration() {
         return null;
     }
 

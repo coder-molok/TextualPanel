@@ -1,34 +1,36 @@
 package it.femco.textual;
 
-import java.io.IOException;
-import java.util.InputMismatchException;
+import it.femco.textual.panel.Pos;
+import it.femco.textual.panel.Size;
 
 public class ConfigurationTool {
     private static final boolean FOR_CONFIGURATION = false;
     private static final boolean END_CONFIGURATION = true;
 
     Panel panel;
-    TextualPanelConfiguration configuration, old;
+    Configuration configuration, old;
 
-    private ConfigurationTool(Panel panel, TextualPanelConfiguration old) {
+    private ConfigurationTool(Panel panel, Configuration old) {
         this.panel = panel;
         this.old = old;
+        this.configuration = old;
     }
 
-    public static TextualPanelConfiguration doConfiguration(Panel panel, TextualPanelConfiguration old) {
+    public static Configuration doConfiguration(Panel panel, Configuration old) {
         ConfigurationTool me = new ConfigurationTool(panel, old);
-        return me.doConfiguration().getConfiguration();
+        return me.doConfigurationWizard().getConfiguration();
     }
 
-    private TextualPanelConfiguration getConfiguration() {
+    private Configuration getConfiguration() {
         return this.configuration;
     }
 
-    private ConfigurationTool doConfiguration() {
-        boolean dimensioniConfermate=true;
-        boolean configurazioneValida=true;
+    private ConfigurationTool doConfigurationWizard() {
+        if (this.configuration==null) this.configuration = new Configuration(
+                        panel.getConfiguration().getInput(),
+                        panel.getConfiguration().getOutput());
+
         boolean interrupted=true;
-        int overHeight = -1;
         int width=50, height=10;
 
         // sondaggio iniziale
@@ -61,8 +63,8 @@ public class ConfigurationTool {
                             "it seems that rows number isn't correct, retry please ( cols,rows ): ");
                     continue;
                 }
-                width = Integer.valueOf(response.split(",")[0]);
-                height = Integer.valueOf(response.split(",")[1]);
+                width = Integer.parseInt(response.split(",")[0]);
+                height = Integer.parseInt(response.split(",")[1]);
                 break;
             } while(true);
         } else {
@@ -72,9 +74,7 @@ public class ConfigurationTool {
                 String.format("Now a %d x %d panel will be checked. press a key to start", width, height));
         panel.inputChar();
 
-        showConfiguration(FOR_CONFIGURATION, String.format(
-                "Can you see the grid %d x %d ? [y/n]", width, height));
-        if ('n' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1)) {
+        do {
             // try to get max H and W
             panel.rawprint(panel.newline+"Check this line ...");
             do {
@@ -83,7 +83,7 @@ public class ConfigurationTool {
                 if ('y' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1)) {
                     showHorizontalLineRuler(width);
                     panel.rawprint(panel.newline+"Insert the maximum abscissa on the right: ");
-                    width = panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                    width = panel.inputUInteger(c -> panel.rawprint("Please, insert a positive integer:")>0?0:1);
                     panel.rawprint(panel.newline+"Check it again ...");
                 } else {
                     showHorizontalLineRuler(width);
@@ -96,7 +96,7 @@ public class ConfigurationTool {
                                 "(use this ruler as reference): ");
                         showHorizontalLineRuler(width, true, false);
                         showHorizontalLineRuler(width, false, true);
-                        width += panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                        width += panel.inputUInteger(c -> panel.rawprint("Please, insert a positive integer:")>0?0:1);
                         panel.rawprint(panel.newline+"Check it again ...");
                     } else {
                         break;
@@ -106,115 +106,75 @@ public class ConfigurationTool {
             panel.rawprint(panel.newline+"this is the horizontal dimension of your panel: ");
             showHorizontalRuler(width, false);
 
-            panel.rawprint("Check the next numbered column (press any key)");
+            panel.rawprint(panel.newline+"Check the next numbered column (press any key)");
             panel.inputChar();
             do {
-                showVerticalRuler(height, 2);
-                panel.rawprint("Does it fill the whole height?");
-                if ('y' == panel.inputYN(c -> panel.rawprint("Only y or n (answer 'n'+'n' to repeat):")>0?0:1)) {
-                    showVerticalRuler(height, 2);
-                    panel.rawprint("Insert the maximum ordinate at the top: ");
-                    int newheight = panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
+                showVerticalRuler(height, 1);
+                panel.rawprint("    Does it fill the whole height?");
+                if ('y' == panel.inputYN(c -> panel.rawprint(
+                        "Only y or n (answer 'n' and then '0' to repeat):")>0?0:1)) {
+                    showVerticalRuler(height, 1);
+                    panel.rawprint("    Insert the maximum ordinate you see at the top: ");
+                    int newheight = panel.inputUInteger(c -> panel.rawprint(
+                            "Please, insert a positive integer:")>0?0:1);
                     if (newheight == height) {
                         break;
                     }
-                    panel.rawprint("Check it again ...");
+                    panel.rawprint(panel.newline+"It seems that "+String.valueOf(height)+
+                            " was too much. Check it again ...");
+                    height = newheight;
+                    panel.inputChar();
                 } else {
-                    panel.rawprint("Is there room at the bottom of this line ?");
-                    if ('y' == panel.inputYN(c ->
-                            panel.rawprint("Only y or n (you can answer Y and then come back):")>0?0:1)) {
-                        panel.rawprint("Insert the number of characters that may fill the gap: ");
-                        width += panel.inputUInteger(c -> panel.rawprint("Please, insert e positive integer:")>0?0:1);
-                        panel.rawprint("Check it again ...");
-                    }
+                    panel.rawprint(panel.newline+"Insert the number of lines that may fill the gap"+
+                            panel.newline+"(exaggerate if you are unsure): ");
+                    height += panel.inputUInteger(c -> panel.rawprint(
+                            "Please, insert a positive integer:")>0?0:1);
+                    panel.rawprint(panel.newline+"Check it again ...");
+                    panel.inputChar();
                 }
             } while(true);
+            this.configuration = this.configuration.configureSize(new Size(width, height));
 
-
-            showConfiguration(FOR_CONFIGURATION,"Is the grid interrupted by blank lines? [y/n]");
-            risposta = '\0';
-            while (risposta!='y' && risposta!='n') {
-                if (risposta!='\0' && risposta!='\n' && risposta!='\r') {
-                    sout.printf("Only y or n:");
-                }
-                try {
-                    risposta = Character.toLowerCase((char) sin.read());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    configurazioneValida = false;
+            if (this.configuration.isInterrupted()) {
+                showConfiguration(this.configuration, FOR_CONFIGURATION,
+                        "Is the grid interrupted by blank lines? [y/n]");
+                if ('y' == panel.inputYN(c -> panel.rawprint(
+                        "Only y or n:")>0?0:1)) {
+                    this.configuration = this.configuration.configureInterruption(false);
                 }
             }
-            if (risposta=='y') {
-                interrupted = false;
-            }
-            showConfiguration(FOR_CONFIGURATION,"Check the maximum ordinata on the top of the grid [1..number]");
-            do {
-                try {
-                    height = sinreader.nextInt();
-                } catch (InputMismatchException e) {
-                    height = -1;
-                    try {
-                        sin.skip(sin.available());
-                        sinreader.skip(".*");
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        configurazioneValida = false;
-                    }
-                    sout.print("Only a valid number:");
-                }
-            } while (height < 0);
-        } else {
-            // get additional height
-            showConfiguration(FOR_CONFIGURATION,"How many rows you see over the grid? [0..number]");
-            while (overHeight==-1) {
-                try {
-                    overHeight = sinreader.nextInt();
-                } catch (InputMismatchException e) {
-                    overHeight = -1;
-                    try {
-                        sin.skip(sin.available());
-                        sinreader.skip(".*");
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        configurazioneValida = false;
-                    }
-                    sout.print("Only a number:");
-                }
-            }
+            showConfiguration(this.configuration, FOR_CONFIGURATION,
+                    String.format("Can you see the grid %d x %d ? [y/n]", width, height));
+        } while ('n' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1));
 
-        }
-        showConfiguration(END_CONFIGURATION, "This will be your textual panel (press any key):");
-        try {
-            sin.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-            configurazioneValida = false;
-        }
-        this.configuration = new TextualPanelConfiguration(
-                configuration.getInput(), configuration.getOutput(),
-                width, height, overHeight, interrupted
-        );
-        this.configuration.validate(configurazioneValida);
+        showConfiguration(this.configuration, END_CONFIGURATION,
+                "This will be your textual panel (press any key):");
+        panel.inputChar();
+        this.configuration.validate(true);
         return this;
     }
 
-    private void showConfiguration(boolean endConfiguration, String message) {
-        for (int i = (configuration.overHeight()<0?100:configuration.overHeight()); i > 0; i--) {
+    private void showConfiguration(Configuration conf, boolean endConfiguration, String message) {
+        Size dim = conf.getSize();
+        // draw space over the panel
+        for (int i = (Integer.max(0, conf.overHeight())); i > 0; i--) {
             if (!endConfiguration) {
-                sout.printf("%3d", i);
+                panel.rawprint( String.format("%3d", i));
                 if (i % 10 == 0) {
-                    sout.print(" ==");
+                    panel.rawprint(" ==");
                 } else if (i % 5 == 0) {
-                    sout.print(" -");
+                    panel.rawprint(" -");
                 }
             }
-            sout.println();
+            panel.rawprint(panel.newline);
         }
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (y==height-4 && x==7) {
-                    sout.print(message);
-                    x+=(message.length()-1);
+        Pos messagePosition = new Pos(
+                Integer.min(dim.w()-message.length(), 7),
+                Integer.max(dim.h()-4, 0));
+        for (int y = 0; y < dim.h(); y++) {
+            for (int x = 0; x < dim.w(); x++) {
+                if (x==messagePosition.x() && y==messagePosition.y()) {
+                    x+=panel.rawprint(message)-1;
                 } else {
                     char ch = ' ';
                     if (x % 2 == 0 && y % 2 == 0) {
@@ -226,15 +186,41 @@ public class ConfigurationTool {
                     }
                     if (endConfiguration) {
                         ch = ' ';
-                        if (x==0 || y==0 || x==width-1 || y==height-1) ch='#';
+                        if (x==0 || y==0 || x==dim.w()-1 || y==dim.h()-1) ch='#';
                     } else {
-                        ch = showConfRuler(x + 1, width, y + 1, height, ch);
+                        ch = showConfRuler(x + 1, dim.w(), y + 1, dim.h(), ch);
                     }
-                    sout.print(ch);
+                    panel.rawprint(String.valueOf(ch));
                 }
             }
-            if (y < height -1 && configuration.isInterrupted()) sout.println();
+            if (y < dim.h()-1 && conf.isInterrupted()) panel.rawprint(panel.newline);
         }
+    }
+
+    private char showConfRuler(int x, int maxx, int y, int maxy, char ch) {
+        if (y == maxy) {
+            ch = '.';
+            if (x % 10 == 5) ch = ':';
+            if (x % 10 == 0) ch = '0';
+            if (x % 10 == 9) ch = (char) ('0'+(int)((x+1)/10));
+            if (x > 97) {
+                if (x % 10 == 8) ch = (char) ('0'+(int)((x+2)/100));
+                if (x % 10 == 9) ch = (char) ('0'+((int)((x+1)/10))% 10);
+            }
+        }
+        if (x == 3) ch = ' ';
+        if (x == 4) ch = '.';
+        int yPrint = maxy - y +1;
+        if ((y-1) % 3 == 0 && y != maxy) {
+            if (x == 4) {
+                ch = (char) ('0'+ yPrint % 10);
+            } else if (yPrint > 9 && x == 3) {
+                ch = (char) ('0'+((int)(yPrint/10))% 10);
+            } else if (yPrint > 99 && x == 2) {
+                ch = (char) ('0'+(int)(yPrint/100));
+            }
+        }
+        return ch;
     }
 
     private void showVerticalRuler(int dim) {

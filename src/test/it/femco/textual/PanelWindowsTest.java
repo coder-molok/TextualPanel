@@ -68,7 +68,7 @@ public class PanelWindowsTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
-        TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
+        Configuration conf = new Configuration(input, output);
 
         Panel tp = new PanelWindows(conf);
 
@@ -86,7 +86,7 @@ public class PanelWindowsTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
-        TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
+        Configuration conf = new Configuration(input, output);
 
         Panel tp = new PanelWindows(conf);
 
@@ -107,7 +107,7 @@ public class PanelWindowsTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
-        TextualPanelConfiguration conf = new TextualPanelConfiguration(input, output);
+        Configuration conf = new Configuration(input, output);
 
         Panel tp = new PanelWindows(conf);
 

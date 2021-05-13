@@ -33,7 +33,7 @@ public interface Panel {
 
     boolean configure(CharSequence s);
 
-    TextualPanelConfiguration getConfiguration();
+    Configuration getConfiguration();
 
     /**
      * Update and draw recent/new modifications to the screen.

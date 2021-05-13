@@ -16,6 +16,8 @@ public class Size {
         return width;
     }
 
+    public int w() { return this.getWidth(); }
+
     public void setWidth(int width) {
         this.width = width;
     }
@@ -23,6 +25,8 @@ public class Size {
     public int getHeight() {
         return height;
     }
+
+    public int h() { return this.getHeight(); }
 
     public void setHeight(int height) {
         this.height = height;
