@@ -83,7 +83,7 @@ public interface Panel {
     int inputUInteger(Function<CharSequence, Integer> wrongInput);
 
     /**
-     * Flush the current input buffer, then read a single char.
+     * Flush the current input buffer, then wait a single char.
      *
      * Pay attention! if the input stream is a file, this method
      * will flush all the stream and then it will wait forever.
