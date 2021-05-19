@@ -105,7 +105,7 @@ public class PanelBasic implements Panel {
 
     @Override
     public Configuration getConfiguration() {
-        return null;
+        return this.configuration;
     }
 
     @Override
