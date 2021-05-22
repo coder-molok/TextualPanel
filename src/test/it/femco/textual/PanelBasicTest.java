@@ -149,4 +149,65 @@ public class PanelBasicTest extends TestCase {
 
         asynKeyboard.stop();
     }
+
+    public void testWatchOutForEnterRequired() {
+        // the function is immersed in the class and is not directed testable,
+        // the logic is that in some terminal a single character is not send
+        // without a ENTER press, in some cases (inputChar, waitAChar) the 'new line'
+        // sequence is not expected and has to be removed.
+        // The test must verify that the next input don't carry the unwanted newline.
+        String next_input = "Frase successiva.";
+
+        try {
+            // correct single char and subsequent text
+            test_keyb.write(("p"+next_input+System.lineSeparator())
+                    .getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("something is wrong in the test.");
+        }
+        assertEquals("single character not read", 'p', test_panel.inputChar());
+        assertEquals("next input was wrong", next_input, test_panel.inputString());
+
+        String first_sentence = "Casual sentence.";
+        try {
+            // correct string and subsequent string
+            test_keyb.write((first_sentence+System.lineSeparator()
+                            +next_input+System.lineSeparator())
+                    .getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("something is wrong in the test.");
+        }
+        assertEquals("first sentence is wrong", first_sentence, test_panel.inputString());
+        assertEquals("next input was wrong", next_input, test_panel.inputString());
+
+        // this will be trigger on the wofer
+        assertFalse(test_panel.getConfiguration().isRequiredEnter());
+        AsynKeyboard asynKeyboard = new AsynKeyboard(test_keyb, terminal_keyb);
+        new Thread(asynKeyboard, "keyboard").start();
+        try {
+            test_keyb.write(new byte[] {'p','a','r','o','l','a'});
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("something is wrong in the test.");
+        }
+        asynKeyboard.typeOnKeyboard(new byte[] {'x','\n','\r'});
+        assertEquals("multiple characters read", 'x', test_panel.waitAChar());
+        assertNull(asynKeyboard.getError());
+        assertTrue(test_panel.getConfiguration().isRequiredEnter());
+        asynKeyboard.stop();
+
+        String char_accompanied = "A"+System.lineSeparator();
+        try {
+            // correct string and subsequent string
+            test_keyb.write((char_accompanied+next_input+System.lineSeparator())
+                    .getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("something is wrong in the test.");
+        }
+        assertEquals("first char is wrong", 'A', test_panel.inputChar());
+        assertEquals("wofer isn't intervened", next_input, test_panel.inputString());
+    }
 }

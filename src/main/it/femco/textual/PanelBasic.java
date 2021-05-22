@@ -40,6 +40,7 @@ public class PanelBasic implements Panel {
         // bring back streams here for convenience
         this.sin = config.getInput();
         this.sout= config.getOutput();
+        this.sinreader = new Scanner(sin);
     }
 
     public PanelBasic() {
@@ -49,7 +50,6 @@ public class PanelBasic implements Panel {
     public Panel open(int columns, int rows) {
         width = columns;
         height = rows;
-        sinreader = new Scanner(sin);
 
         if (!configuration.isConfigured()) {
             configuration = ConfigurationTool.doConfiguration(this, configuration);
@@ -122,7 +122,7 @@ public class PanelBasic implements Panel {
     @Override
     public char inputChar() {
         try {
-            return Character.toLowerCase((char) this.sin.read());
+            return (char) this.sin.read();
         } catch (IOException e) {
             e.printStackTrace();
             return '\0';
@@ -132,11 +132,39 @@ public class PanelBasic implements Panel {
     @Override
     public char waitAChar() {
         try {
-            while (this.sin.skip(this.sin.available())>0);
+            while (sin.skip(sin.available())>0);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return inputChar();
+        char achar = inputChar();
+        // check for 'enter' pressed
+        try {
+            if (!configuration.isRequiredEnterChecked()) {
+                int available = sin.available();
+                if (available==1 || available==2) {
+                    if (sin.markSupported()) sin.mark(3);
+                    char checkWithLoss = (char)sin.read();
+                    if (checkWithLoss=='\n' || checkWithLoss=='\r') {
+                        configuration.setEnterRequired(available);
+                        // also remove a second char
+                        if (available==2) {
+                            checkWithLoss = (char)sin.read();
+                            if (checkWithLoss!='\n' && checkWithLoss!='\r')
+                                // hops... second character doesn't matter
+                                configuration.setEnterRequired(1);
+                        }
+                    }
+                    else if (sin.markSupported()) sin.reset();
+                }
+            } else {
+                // the 'enter' required is already proved, remove the line terminator
+                sin.skip(sin.available());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            // check ended
+        }
+        return achar;
     }
 
     @Override

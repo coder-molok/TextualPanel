@@ -17,6 +17,21 @@ public class Configuration {
     private int overHeight = -1;
     private boolean interrupted = true;
 
+    // input configurations
+    private enum EnterRequired {
+        NOT_CHECKED, // needs check
+        NOT_REQUIRED, // already checked, not required
+        ENTER_REQUIRED, // inputs are followed by one character to skip
+        ENTER_REQUIRED_DOUBLE // inputs are followed by two characters.
+    }
+    EnterRequired enterIsRequired = EnterRequired.NOT_CHECKED;
+    // some terminals send input only on 'enter' pressed.
+    // this signal trace the need for remove lineseparator from single char input
+    // it may be  triggered by a waitAChar call, watch out,
+    // when a strictly 1 or 2 char following: a line separator (an enter).
+    // To optimize and check this mode only once, this flag may by in different status.
+
+
 
     public Configuration(InputStream streamin, PrintStream streamout) {
         this.sin = streamin;
@@ -125,4 +140,27 @@ public class Configuration {
     }
 
     public Size getSize() { return new Size(this.maxWidth, this.maxHeight); }
+
+    public boolean isRequiredEnter() {
+        return enterIsRequired==EnterRequired.ENTER_REQUIRED
+            || enterIsRequired==EnterRequired.ENTER_REQUIRED_DOUBLE;
+    }
+    public boolean isRequiredEnterChecked() {
+        return enterIsRequired!=EnterRequired.NOT_CHECKED;
+    }
+    public int howMuchSkipEnterReqired() {
+        return (enterIsRequired==EnterRequired.ENTER_REQUIRED_DOUBLE)
+                ?2
+                :(enterIsRequired==EnterRequired.ENTER_REQUIRED
+                ?1
+                :0);
+    }
+    /*
+     * This is an irregular setter: this flag can be only activate.
+     */
+    public void setEnterRequired(int howMuchCharactersToSkip) {
+        enterIsRequired = (howMuchCharactersToSkip==1)
+                ? EnterRequired.ENTER_REQUIRED
+                : EnterRequired.ENTER_REQUIRED_DOUBLE;
+    }
 }
