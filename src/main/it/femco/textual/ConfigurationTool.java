@@ -3,9 +3,23 @@ package it.femco.textual;
 import it.femco.textual.panel.Pos;
 import it.femco.textual.panel.Size;
 
+import java.io.*;
+import java.util.Properties;
+import java.util.logging.Logger;
+
 public class ConfigurationTool {
     private static final boolean FOR_CONFIGURATION = false;
     private static final boolean END_CONFIGURATION = true;
+
+    // Properties props
+    public static final String PROP_MAX_WIDTH = "dimensions.max_width";
+    public static final String PROP_MAX_HEIGHT = "dimensions.max_height";
+    public static final String PROP_OVERHEIGHT = "dimensions.overheight";
+    public static final String PROP_LINE_INTR = "behaviour.line_interruption";
+    public static final String PROP_ENTER_REQ = "behaviour.enter_required";
+    public static final String PROP_CONFIGURED = "status.configured";
+
+    protected static Logger log = Logger.getLogger(ConfigurationTool.class.getCanonicalName());
 
     Panel panel;
     Configuration configuration, old;
@@ -13,7 +27,7 @@ public class ConfigurationTool {
     private ConfigurationTool(Panel panel, Configuration old) {
         this.panel = panel;
         this.old = old;
-        this.configuration = old;
+        this.configuration = panel.getConfiguration();
     }
 
     public static Configuration doConfiguration(Panel panel, Configuration old) {
@@ -25,18 +39,23 @@ public class ConfigurationTool {
         return this.configuration;
     }
 
+    private String pressAKeyMessage(String queue) {
+        if (this.configuration.isRequiredEnter()) {
+            return "press ENTER "+queue;
+        }
+        return "press a key "+queue;
+    }
     private ConfigurationTool doConfigurationWizard() {
-        if (this.configuration==null) this.configuration = new Configuration(
-                        panel.getConfiguration().getInput(),
-                        panel.getConfiguration().getOutput());
-
         boolean interrupted=true;
-        int width=50, height=10;
+        int width=50, height=20;
 
         // sondaggio iniziale
         panel.rawprint(panel.newline+"  It seems that your panel is not configured, yet."
-                +panel.newline+"  Now start the configuration procedure:"
-                +panel.newline+"  Do you know the approximate dimension of this textual window? [y/n]"
+                +panel.newline+"  Now start the configuration procedure."
+                +panel.newline+"  Press a key to start (may be needed the ENTER, if nothing happen)"
+        );
+        panel.waitAChar();
+        panel.rawprint(panel.newline+"  Do you know the approximate dimension of this textual window? [y/n]"
         );
         if ('y' == panel.inputYN(character -> panel.rawprint("Only y or n:")>0?0:1)) {
             panel.rawprint(panel.newline+"  please, insert the approximate dimension in the form:"
@@ -71,7 +90,8 @@ public class ConfigurationTool {
             panel.rawprint(panel.newline+"  A default value will be used to configure the panel.");
         }
         panel.rawprint(panel.newline+
-                String.format("Now a %d x %d panel will be checked. press a key to start", width, height));
+                String.format("Now a %d x %d panel will be checked. "+pressAKeyMessage("to start"),
+                        width, height));
         panel.waitAChar();
 
         do {
@@ -96,17 +116,28 @@ public class ConfigurationTool {
                                 "(use this ruler as reference): ");
                         showHorizontalLineRuler(width, true, false);
                         showHorizontalLineRuler(width, false, true);
+                        panel.rawprint(panel.newline);
                         width += panel.inputUInteger(c -> panel.rawprint("Please, insert a positive integer:")>0?0:1);
                         panel.rawprint(panel.newline+"Check it again ...");
                     } else {
+                        // check for non-wrapping terminal
+                        showHorizontalLine(width, true, false);
+                        showHorizontalLine(width, false, true);
+                        panel.rawprint("Do you see two equal lines above? ");
+                        if ('n' == panel.inputYN(c -> panel.rawprint(
+                                "Only y or n:")>0?0:1)) {
+                            this.configuration = this.configuration.configureInterruption(true);
+                        }
                         break;
                     }
                 }
             } while(true);
-            panel.rawprint(panel.newline+"this is the horizontal dimension of your panel: ");
-            showHorizontalRuler(width, false);
+            panel.rawprint(panel.newline+"this is the horizontal dimension of your panel:"+panel.newline);
+            showHorizontalRuler(width, configuration.isInterrupted());
 
-            panel.rawprint(panel.newline+"Check the next numbered column (press any key)");
+            panel.rawprint(panel.newline+panel.newline+"Now let's get the vertical one!");
+            panel.rawprint(panel.newline+"Check the next numbered column ("+
+                    pressAKeyMessage(")"));
             panel.inputChar();
             do {
                 showVerticalRuler(height, 1);
@@ -121,7 +152,7 @@ public class ConfigurationTool {
                         break;
                     }
                     panel.rawprint(panel.newline+"It seems that "+String.valueOf(height)+
-                            " was too much. Check it again ...");
+                            " was too much, set "+String.valueOf(newheight)+". Check it again ...");
                     height = newheight;
                     panel.inputChar();
                 } else {
@@ -129,8 +160,7 @@ public class ConfigurationTool {
                             panel.newline+"(exaggerate if you are unsure): ");
                     height += panel.inputUInteger(c -> panel.rawprint(
                             "Please, insert a positive integer:")>0?0:1);
-                    panel.rawprint(panel.newline+"Check it again ...");
-                    panel.inputChar();
+                    panel.rawprint(panel.newline+"Check it again ..."+panel.newline);
                 }
             } while(true);
             this.configuration = this.configuration.configureSize(new Size(width, height));
@@ -148,8 +178,8 @@ public class ConfigurationTool {
         } while ('n' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1));
 
         showConfiguration(this.configuration, END_CONFIGURATION,
-                "This will be your textual panel (press any key):");
-        panel.inputChar();
+                "This will be your textual panel ("+pressAKeyMessage("):"));
+        panel.waitAChar();
         this.configuration.validate(true);
         return this;
     }
@@ -177,9 +207,9 @@ public class ConfigurationTool {
                     x+=panel.rawprint(message)-1;
                 } else {
                     char ch = ' ';
-                    if (x % 2 == 0 && y % 2 == 0) {
+                    if (x % 3 == 0 && y % 2 == 0) {
                         ch = '+';
-                    } else if (x % 2 == 0) {
+                    } else if (x % 3 == 0) {
                         ch = '|';
                     } else if (y % 2 == 0) {
                         ch = '-';
@@ -192,13 +222,15 @@ public class ConfigurationTool {
                     }
                     panel.rawprint(String.valueOf(ch));
                 }
+                // interrompo prima all'ultima riga per evitare che la risposta sposti la maschera
+                if (y==dim.h()-1 && x+3>dim.w()) break;
             }
             if (y < dim.h()-1 && conf.isInterrupted()) panel.rawprint(panel.newline);
         }
     }
 
     private char showConfRuler(int x, int maxx, int y, int maxy, char ch) {
-        if (y == maxy) {
+        if (y == maxy-1) {
             ch = '.';
             if (x % 10 == 5) ch = ':';
             if (x % 10 == 0) ch = '0';
@@ -208,15 +240,15 @@ public class ConfigurationTool {
                 if (x % 10 == 9) ch = (char) ('0'+((int)((x+1)/10))% 10);
             }
         }
-        if (x == 3) ch = ' ';
-        if (x == 4) ch = '.';
+        if (x == 2) ch = ' ';
+        if (x == 3) ch = '.';
         int yPrint = maxy - y +1;
         if ((y-1) % 3 == 0 && y != maxy) {
-            if (x == 4) {
+            if (x == 3) {
                 ch = (char) ('0'+ yPrint % 10);
-            } else if (yPrint > 9 && x == 3) {
+            } else if (yPrint > 9 && x == 2) {
                 ch = (char) ('0'+((int)(yPrint/10))% 10);
-            } else if (yPrint > 99 && x == 2) {
+            } else if (yPrint > 99 && x == 1) {
                 ch = (char) ('0'+(int)(yPrint/100));
             }
         }
@@ -277,7 +309,8 @@ public class ConfigurationTool {
         showHorizontalLineRuler(dim, true, true);
     }
     private void showHorizontalLineRuler(int dim, boolean startingNL, boolean numbered) {
-        panel.rawprint(panel.newline);
+        if (startingNL)
+            panel.rawprint(panel.newline);
         for (int i=0; i<dim; i++) {
             if (i % 5 == 0) {
                 if (i % 10 == 0)
@@ -286,11 +319,11 @@ public class ConfigurationTool {
                     panel.rawprint("+");
             } else if (numbered) {
                 if (i > 995 && i % 10 == 6) {
-                    panel.rawprint(String.valueOf(i+4 % 10000).substring(0,1));
+                    panel.rawprint(String.valueOf((i+4) % 10000).substring(0,1));
                 } else if (i > 96 && i % 10 == 7) {
-                    panel.rawprint(String.valueOf(i+3 % 1000).substring(0,1));
+                    panel.rawprint(String.valueOf((i+3) % 1000).substring(0,1));
                 } else if (i % 10 == 8) {
-                    panel.rawprint(String.valueOf(i+2 % 100).substring(0,1));
+                    panel.rawprint(String.valueOf((i+2) % 100).substring(0,1));
                 } else if (i % 10 == 9) {
                     panel.rawprint("0");
                 } else
@@ -317,7 +350,7 @@ public class ConfigurationTool {
         // thousands
         if (dim > 999) {
             for (int i = 1; i <= dim; i++) {
-                if (i % 1000 == 0) {
+                if (i % 10 == 0 && i>999) {
                     i+=panel.rawprint(String.valueOf((int)Math.floor(i/1000.0)))-1;
                 } else {
                     panel.rawprint("_");
@@ -328,8 +361,10 @@ public class ConfigurationTool {
         // hundreds
         if (dim > 99) {
             for (int i = 1; i <= dim; i++) {
-                if (i % 100 == 0) {
+                if (i % 10 == 0 && i>99) {
                     panel.rawprint(String.valueOf((int)Math.floor((i % 1000)/100.0)));
+                } else {
+                    panel.rawprint(" ");
                 }
             }
             if (needLineBreak) panel.rawprint(panel.newline);
@@ -348,4 +383,51 @@ public class ConfigurationTool {
             panel.rawprint(String.valueOf(i % 10));
         }
     }
+
+    public static Configuration getFromProperties(InputStream propertiesSource, InputStream inps, PrintStream oups) {
+        Properties confProp = new Properties();
+        try {
+            confProp.load(propertiesSource);
+
+            Integer maxwidth = Integer.parseInt(confProp.getProperty(PROP_MAX_WIDTH,"80"));
+            Integer maxheight = Integer.parseInt(confProp.getProperty(PROP_MAX_HEIGHT,"25"));
+            Integer overheight = Integer.parseInt(confProp.getProperty(PROP_OVERHEIGHT,"0"));
+            Boolean lineinterrupted = Boolean.getBoolean(confProp.getProperty(PROP_LINE_INTR,"true"));
+            Configuration.EnterRequired enterIsRequired = Configuration.EnterRequired.valueOf(
+                    confProp.getProperty(PROP_ENTER_REQ, Configuration.EnterRequired.NOT_CHECKED.name()));
+            Boolean configured = Boolean.getBoolean(confProp.getProperty(PROP_CONFIGURED,"false"));
+
+            Configuration conf = new Configuration(inps, oups);
+            conf = conf.cloneWith(null, null,
+                    maxwidth, maxheight, overheight, lineinterrupted,
+                    enterIsRequired, configured);
+
+            return conf;
+        } catch (IOException e) {
+            log.severe("getFromProperties can't get properties from input-stream.");
+            e.printStackTrace();
+        } catch (ClassCastException e) {
+            log.severe("getFromProperties, properties file contain 'integer' property with wrong value.");
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public static void putInProperties(Configuration config, OutputStream output) {
+        Properties confProp = new Properties();
+
+        confProp.setProperty(PROP_CONFIGURED, Boolean.toString(config.isConfigured()));
+        confProp.setProperty(PROP_MAX_WIDTH, Integer.toString(config.maxColumns()));
+        confProp.setProperty(PROP_MAX_HEIGHT, Integer.toString(config.maxRows()));
+        confProp.setProperty(PROP_OVERHEIGHT, Integer.toString(config.overHeight()));
+        confProp.setProperty(PROP_LINE_INTR, Boolean.toString(config.isInterrupted()));
+        confProp.setProperty(PROP_ENTER_REQ, config.enterIsRequired.name());
+
+        try {
+            confProp.store(output, "Textual Panel Configuration");
+        } catch (IOException e) {
+            log.severe("putInProperties can't put properties in output stream.");
+            e.printStackTrace();
+        }
+    }
 }
+

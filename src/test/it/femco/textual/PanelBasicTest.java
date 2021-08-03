@@ -156,7 +156,7 @@ public class PanelBasicTest extends TestCase {
         // without a ENTER press, in some cases (inputChar, waitAChar) the 'new line'
         // sequence is not expected and has to be removed.
         // The test must verify that the next input don't carry the unwanted newline.
-        String next_input = "Frase successiva.";
+        String next_input = "Next sentence.";
 
         try {
             // correct single char and subsequent text
@@ -192,7 +192,12 @@ public class PanelBasicTest extends TestCase {
             e.printStackTrace();
             fail("something is wrong in the test.");
         }
-        asynKeyboard.typeOnKeyboard(new byte[] {'x','\n','\r'});
+        if (System.lineSeparator().length()==2) {
+            asynKeyboard.typeOnKeyboard(new byte[]{'x', '\n', '\r'});
+        } else {
+            asynKeyboard.typeOnKeyboard(new byte[]{'x',
+                    System.lineSeparator().getBytes(StandardCharsets.UTF_8)[0]});
+        }
         assertEquals("multiple characters read", 'x', test_panel.waitAChar());
         assertNull(asynKeyboard.getError());
         assertTrue(test_panel.getConfiguration().isRequiredEnter());
@@ -207,7 +212,9 @@ public class PanelBasicTest extends TestCase {
             e.printStackTrace();
             fail("something is wrong in the test.");
         }
-        assertEquals("first char is wrong", 'A', test_panel.inputChar());
-        assertEquals("wofer isn't intervened", next_input, test_panel.inputString());
+        assertEquals("first char is wrong", 'A',
+                test_panel.inputChar());
+        assertEquals("wofer isn't intervened", next_input,
+                test_panel.inputString());
     }
 }

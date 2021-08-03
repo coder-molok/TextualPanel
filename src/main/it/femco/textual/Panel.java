@@ -14,6 +14,7 @@ public interface Panel {
     public final static char CANCEL_CHAR = '\u0018';
 
     public final static String VOID_STRING = String.valueOf(VOID_CHAR);
+    public final static String EMPTY_STRING = "";
 
     /**
      * facility for do new lines.

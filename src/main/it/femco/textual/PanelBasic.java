@@ -119,14 +119,63 @@ public class PanelBasic implements Panel {
         return text.length();
     }
 
-    @Override
-    public char inputChar() {
+    protected boolean isValidEnterChar(char tested) {
+        return (tested=='\n' || tested=='\r');
+    }
+    protected void wofer() {
+        this.wofer(false, null);
+    }
+    protected void wofer(boolean isConfigurable, Character lastPressed) {
         try {
-            return (char) this.sin.read();
+            if (!configuration.isRequiredEnterChecked() && isConfigurable) {
+                int enterLength = 0;
+                if (lastPressed!=null && isValidEnterChar(lastPressed.charValue())) {
+                    enterLength++;
+                }
+                int available = sin.available();
+                if (available>=1) {
+                    if (sin.markSupported()) sin.mark(3);
+                    char checkWithLoss = (char)sin.read();
+                    if (isValidEnterChar(checkWithLoss)) {
+                        enterLength++;
+                        // also remove a second char
+                        if (available>=2 && enterLength<2) {
+                            if (sin.markSupported()) sin.mark(2);
+                            checkWithLoss = (char)sin.read();
+                            if (isValidEnterChar(checkWithLoss)) {
+                                enterLength++;
+                            }
+                            else if (sin.markSupported()) sin.reset();
+                        }
+                    }
+                    else if (sin.markSupported()) sin.reset();
+                }
+                if (enterLength>=0) {
+                    configuration.setEnterRequired(enterLength);
+                }
+            } else if (configuration.isRequiredEnterChecked()) {
+                // the 'enter' required is already proved, remove the line terminator
+                if (configuration.isRequiredEnter()) {
+                    int skippa = Integer.min(sin.available(), configuration.howMuchSkipEnterReqired());
+                    sin.skip(skippa);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return '\0';
         }
+    }
+
+    @Override
+    public char inputChar() {
+        char achar;
+        try {
+            achar = (char) this.sin.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+            achar = '\0';
+        }
+        this.wofer();
+        return achar;
     }
 
     @Override
@@ -138,32 +187,7 @@ public class PanelBasic implements Panel {
         }
         char achar = inputChar();
         // check for 'enter' pressed
-        try {
-            if (!configuration.isRequiredEnterChecked()) {
-                int available = sin.available();
-                if (available==1 || available==2) {
-                    if (sin.markSupported()) sin.mark(3);
-                    char checkWithLoss = (char)sin.read();
-                    if (checkWithLoss=='\n' || checkWithLoss=='\r') {
-                        configuration.setEnterRequired(available);
-                        // also remove a second char
-                        if (available==2) {
-                            checkWithLoss = (char)sin.read();
-                            if (checkWithLoss!='\n' && checkWithLoss!='\r')
-                                // hops... second character doesn't matter
-                                configuration.setEnterRequired(1);
-                        }
-                    }
-                    else if (sin.markSupported()) sin.reset();
-                }
-            } else {
-                // the 'enter' required is already proved, remove the line terminator
-                sin.skip(sin.available());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            // check ended
-        }
+        this.wofer(true, achar);
         return achar;
     }
 
@@ -190,13 +214,7 @@ public class PanelBasic implements Panel {
                     }
                 }
             }
-            try {
-                response = Character.toLowerCase((char) this.sin.read());
-            } catch (IOException e) {
-                e.printStackTrace();
-                response = VOID_CHAR;
-                break;
-            }
+            response = Character.toLowerCase(this.waitAChar());
         }
         return response;
     }
@@ -215,18 +233,21 @@ public class PanelBasic implements Panel {
                 }
             }
             try {
-                input = this.sinreader.nextLine();
-                response = Integer.valueOf(input);
-                if (response < 0) {
-                    // not needed, but get in evindence the user error.
-                    response = -5;
+                input = this.inputString();
+                // only first run, only if NL is due, a VOID_STRING is skipped
+                if (response==-2 && EMPTY_STRING.equals(input)) {
+                    // TODO check the NL is due
+                    response=-1;
+                    input = VOID_STRING;
+                } else {
+                    response = Integer.valueOf(input);
+                    if (response < 0) {
+                        // not needed, but get in evidence the user error.
+                        response = -5;
+                    }
                 }
             } catch (ClassCastException cce) {
                 response = -4;
-            } catch (Exception e) {
-                e.printStackTrace();
-                response = -3;
-                break;
             }
         }
         return response;
