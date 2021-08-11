@@ -9,8 +9,8 @@ import java.io.*;
  *
  */
 public class Configuration {
-    private final InputStream sin;
-    private final PrintStream sout;
+    private InputStream sin;
+    private PrintStream sout;
     private boolean configured = false;
     private int maxWidth = 0;
     private int maxHeight= 0;
@@ -47,38 +47,30 @@ public class Configuration {
         this.maxHeight= maxheight;
         this.overHeight = overheight;
         this.interrupted= lineinterrupted;
+
+        this.configured = true;
     }
 
     /**
-     * This method parses a character stream and produces a configuration.
-     * Because the input and print streams are not serializable or re-obtainable
-     * from a char description,
-     * this method get two optional parameters for in/print streams or a
-     * basic configuration with these two properties.
-     * If the description of the configuration reports stdin/out, then a null
-     * value is accepted.
-     * Other options are saved in properties files.
-     *
+     * Parse a charachter stream and fill this configuration.
+     * @see ConfigurationTool#getConfiguration(InputStream, Configuration)
      * @param configurationStream data for replicate the configuration
-     * @param streams oggetto Configuration con gli stream da usare.
-     * @return the configuration in accordance with the read stream.
+     * @param instream the input stream to use instead the current ins - optional
+     * @param printStream the print stream to use instead the current outs- optional
+     * @return the configuration as in {@link ConfigurationTool#getConfiguration(InputStream, Configuration)}
      */
-    public static Configuration getConfiguration(InputStream configurationStream, Configuration streams) {
-        return getConfiguration(configurationStream, streams.sin, streams.sout);
+    public void getConfiguration(InputStream configurationStream,
+                                 InputStream instream, PrintStream printStream) {
+        if (instream != null) {
+            this.sin = instream;
+        }
+        if (printStream != null) {
+            this.sout = printStream;
+        }
+        this.getConfiguration(configurationStream);
     }
-
-    /**
-     * Version with explicit parameters for streams.
-     * @see Configuration#getConfiguration(InputStream, Configuration)
-     * @param configurationStream data for replicate the configuration
-     * @param instream the input stream to use
-     * @param printStream the print stream to use
-     * @return the configuration as in {@link Configuration#getConfiguration(InputStream, Configuration)}
-     */
-    public static Configuration getConfiguration(InputStream configurationStream,
-                                                 InputStream instream, PrintStream printStream) {
-        // read stream and set a properties object then get values
-        return ConfigurationTool.getFromProperties(configurationStream, instream, printStream);
+    public void getConfiguration(InputStream configurationStream) {
+        ConfigurationTool.getFromProperties(configurationStream, this);
     }
 
     /**

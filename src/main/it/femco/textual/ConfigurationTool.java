@@ -384,8 +384,37 @@ public class ConfigurationTool {
         }
     }
 
+    /**
+     * Version with explicit parameters for streams.
+     * @see ConfigurationTool#getConfiguration(InputStream, Configuration)
+     * @param configurationStream data for replicate the configuration
+     * @param instream the input stream to use
+     * @param printStream the print stream to use
+     * @return the configuration as in {@link ConfigurationTool#getConfiguration(InputStream, Configuration)}
+     */
     public static Configuration getFromProperties(InputStream propertiesSource, InputStream inps, PrintStream oups) {
+        return getFromProperties(propertiesSource, new Configuration(inps, oups));
+    }
+
+    /**
+     * This method parses a character stream and produces a configuration.
+     * Because the input and print streams are not serializable or re-obtainable
+     * from a char description,
+     * this method get two optional parameters for in/print streams or a
+     * basic configuration with these two properties.
+     * If the description of the configuration reports stdin/out, then a null
+     * value is accepted.
+     * Other options are saved in properties files.
+     *
+     * @param propertiesSource data for replicate the configuration
+     * @param conf object Configuration with the needed streams.
+     * @return the configuration in accordance with the read stream as a clone of conf object.
+     */
+    public static Configuration getFromProperties(InputStream propertiesSource, Configuration conf) {
         Properties confProp = new Properties();
+        if (conf == null) {
+            conf = new Configuration(System.in, System.out);
+        }
         try {
             confProp.load(propertiesSource);
 
@@ -397,7 +426,6 @@ public class ConfigurationTool {
                     confProp.getProperty(PROP_ENTER_REQ, Configuration.EnterRequired.NOT_CHECKED.name()));
             Boolean configured = Boolean.getBoolean(confProp.getProperty(PROP_CONFIGURED,"false"));
 
-            Configuration conf = new Configuration(inps, oups);
             conf = conf.cloneWith(null, null,
                     maxwidth, maxheight, overheight, lineinterrupted,
                     enterIsRequired, configured);

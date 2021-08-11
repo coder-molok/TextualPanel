@@ -18,7 +18,7 @@ public class PanelWindowsTest {
         public ByteArrayDelayedInputStream(byte[] data) {
             int pos=0;
             while (pos < data.length) {
-                int len = 1;
+                int len = 0;
                 while (pos+len < data.length) {
                     if (data[pos+len]=='\n') {
                         len++;
@@ -46,25 +46,24 @@ public class PanelWindowsTest {
             skipOneRow();
             if (maindata.size()>0 && currentPos<maindata.get(0).length) {
                 ch = maindata.get(0)[currentPos++];
-                skipOneRow();
             }
             return ch;
         }
 
         @Override
         public int read(byte[] b, int off, int len) throws IOException {
+            skipOneRow();
             stopStepMode = true;
             int totalBytes = super.read(b, off, len);
             stopStepMode = false;
-            skipOneRow();
             return totalBytes;
         }
     }
 
     @Test
-    public void open_ok() throws Exception {
-        String preemptedinput = "y\n0\n\n";
-        InputStream input = new ByteArrayInputStream(preemptedinput.getBytes());
+    public void configuration_ok() throws Exception {
+        String preemptedinput = "\nn\nnnn\ny20\nny\n";
+        InputStream input = new ByteArrayDelayedInputStream(preemptedinput.getBytes());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
@@ -74,7 +73,27 @@ public class PanelWindowsTest {
 
         Panel opened = tp.open(10, 10);
 
-        assertTrue(baos.toString().contains("This will be your textual panel (press any key):"));
+        assertTrue(baos.toString().contains("This will be your textual panel (press "));
+        assertSame(tp, opened);
+        assertTrue(tp.isOpened());
+    }
+
+    @Test
+    public void open_ok() throws Exception {
+        String preemptedinput = "";
+        InputStream input = new ByteArrayInputStream(preemptedinput.getBytes());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream output = new PrintStream(new BufferedOutputStream(baos));
+        // put the "void ok" configuration
+        // TODO
+
+        Configuration conf = new Configuration(input, output);
+
+        Panel tp = new PanelWindows(conf);
+
+        Panel opened = tp.open(10, 10);
+
+        assertTrue(baos.toString().equals(""));
         assertSame(tp, opened);
         assertTrue(tp.isOpened());
     }
