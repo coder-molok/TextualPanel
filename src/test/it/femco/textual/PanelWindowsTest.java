@@ -84,16 +84,15 @@ public class PanelWindowsTest {
         InputStream input = new ByteArrayInputStream(preemptedinput.getBytes());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
-        // put the "void ok" configuration
-        // TODO
-
-        Configuration conf = new Configuration(input, output);
+        // put the "ok" configuration
+        Configuration conf = new Configuration(input, output,
+                20, 20, 0, false, 0);
 
         Panel tp = new PanelWindows(conf);
 
         Panel opened = tp.open(10, 10);
 
-        assertTrue(baos.toString().equals(""));
+        assertEquals("", baos.toString());
         assertSame(tp, opened);
         assertTrue(tp.isOpened());
     }
@@ -105,23 +104,24 @@ public class PanelWindowsTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
 
-        Configuration conf = new Configuration(input, output);
+        Configuration conf = new Configuration(input, output,
+                15, 15, 0, false, 0);
 
         Panel tp = new PanelWindows(conf);
 
         Panel opened = tp.open(20, 20);
 
-        assertTrue(baos.toString().contains("This will be your textual panel (press any key):"));
+        assertEquals("", baos.toString());
         assertSame(tp, opened);
         assertTrue(tp.isOpened());
         assertEquals("Opened undersized", tp.getLastError());
         assertEquals(15, tp.maxColumns());
-        assertEquals(10, tp.maxRows());
+        assertEquals(15, tp.maxRows());
     }
 
     @Test
-    public void configuration() throws Exception {
-        String preemptedinput = "n\n15\nn\n10\n\n";
+    public void configuration_known_dims() throws Exception {
+        String preemptedinput = "\ny15,10\n\nnnn\ny10\nny\n";
         InputStream input = new ByteArrayDelayedInputStream(preemptedinput.getBytes());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
@@ -130,9 +130,31 @@ public class PanelWindowsTest {
 
         Panel tp = new PanelWindows(conf);
 
-        assertTrue(tp.configure("."));
+        assertTrue(tp.open(2, 2).isOpened());
 
-        assertTrue(baos.toString().indexOf("This will be your textual panel (press ENTER):")>-1);
+        assertTrue(baos.toString().contains("This will be your textual panel (press "));
+        assertFalse(tp.isOpened());
+        assertEquals(0, tp.maxColumns());
+        assertEquals(0, tp.maxRows());
+        assertSame(conf, tp.getConfiguration());
+        assertEquals(15, tp.maxColumns());
+        assertEquals(10, tp.maxRows());
+    }
+
+    @Test
+    public void configuration_with_void_file() throws Exception {
+        String preemptedinput = "";
+        InputStream input = new ByteArrayDelayedInputStream(preemptedinput.getBytes());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream output = new PrintStream(new BufferedOutputStream(baos));
+
+        Configuration conf = new Configuration(input, output);
+
+        Panel tp = new PanelWindows(conf);
+
+        assertTrue(tp.configure());
+
+        assertTrue(baos.toString().indexOf("This will be your textual panel (press ")>-1);
         assertFalse(tp.isOpened());
         assertEquals(0, tp.maxColumns());
         assertEquals(0, tp.maxRows());

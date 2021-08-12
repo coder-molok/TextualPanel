@@ -2,9 +2,10 @@ package it.femco.textual;
 
 import it.femco.textual.panel.Actor;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.function.Function;
 
@@ -99,8 +100,35 @@ public class PanelBasic implements Panel {
     }
 
     @Override
-    public boolean configure(CharSequence s) {
-        return false;
+    public boolean configure(Path s) {
+        Path configurationFile = null;
+        InputStream configInput = null;
+        if (s == null) {
+            s = Paths.get(".");
+        }
+        if (Files.exists(s) && Files.isDirectory(s)) {
+            configurationFile = s.resolve(ConfigurationTool.DEFAULT_CONFIG_FILE);
+        } else if (Files.isRegularFile(s) || s.getFileName().toString().endsWith(".properties")) {
+            configurationFile = s;
+        } else {
+            // invalid path, use "."
+            configurationFile = Paths.get(".").resolve(ConfigurationTool.DEFAULT_CONFIG_FILE);
+        }
+        if (Files.exists(configurationFile)) {
+            try {
+                configInput = new FileInputStream(configurationFile.toFile());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                configInput = new ByteArrayInputStream(new byte[] {});
+            }
+        } else {
+            configInput = new ByteArrayInputStream(new byte[] {});
+        }
+        this.configuration = this.configuration.getConfiguration(configInput);
+        if (!configuration.isConfigured()) {
+            this.configuration = ConfigurationTool.doConfiguration(this, configuration);
+        }
+        return this.configuration.isConfigured();
     }
 
     @Override
@@ -252,4 +280,5 @@ public class PanelBasic implements Panel {
         }
         return response;
     }
+
 }

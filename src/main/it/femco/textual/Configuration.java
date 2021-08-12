@@ -9,13 +9,13 @@ import java.io.*;
  *
  */
 public class Configuration {
-    private InputStream sin;
-    private PrintStream sout;
+    private final InputStream sin;
+    private final PrintStream sout;
     private boolean configured = false;
-    private int maxWidth = 0;
-    private int maxHeight= 0;
-    private int overHeight = -1;
-    private boolean interrupted = true;
+    private final int maxWidth;
+    private final int maxHeight;
+    private final int overHeight;
+    private final boolean interrupted;
 
     // input configurations
     protected enum EnterRequired {
@@ -24,7 +24,7 @@ public class Configuration {
         ENTER_REQUIRED, // inputs are followed by one character to skip
         ENTER_REQUIRED_DOUBLE // inputs are followed by two characters.
     }
-    EnterRequired enterIsRequired = EnterRequired.NOT_CHECKED;
+    private final EnterRequired enterIsRequired;
     // some terminals send input only on 'enter' pressed.
     // this signal trace the need for remove lineseparator from single char input
     // it may be  triggered by a waitAChar call, watch out,
@@ -33,44 +33,70 @@ public class Configuration {
 
 
 
-    public Configuration(InputStream streamin, PrintStream streamout) {
+    protected Configuration(InputStream streamin, PrintStream streamout,
+                         int maxwidth, int maxheight, int overheight,
+                         boolean lineinterrupted, EnterRequired enterIsRequired) {
         this.sin = streamin;
         this.sout= streamout;
-    }
 
-    public Configuration(InputStream streamin, PrintStream streamout,
-                         int maxwidth, int maxheight, int overheight,
-                         boolean lineinterrupted) {
-        this(streamin, streamout);
-        
         this.maxWidth = maxwidth;
         this.maxHeight= maxheight;
         this.overHeight = overheight;
         this.interrupted= lineinterrupted;
 
-        this.configured = true;
+        this.enterIsRequired = enterIsRequired;
+
+        this.configured = checkMayBeConfigured();
+    }
+
+    public Configuration(InputStream streamin, PrintStream streamout,
+                         int maxwidth, int maxheight, int overheight,
+                         boolean lineinterrupted, int enterIsRequired) {
+        this(streamin, streamout, maxwidth, maxheight, overheight, lineinterrupted,
+                (enterIsRequired==0? EnterRequired.NOT_REQUIRED :
+                (enterIsRequired==1? EnterRequired.ENTER_REQUIRED :
+                (enterIsRequired==2? EnterRequired.ENTER_REQUIRED_DOUBLE :
+                        EnterRequired.NOT_CHECKED )))
+        );
+    }
+
+    public Configuration(InputStream streamin, PrintStream streamout) {
+        this(streamin, streamout, 0, 0, -1, false, EnterRequired.NOT_CHECKED);
+    }
+
+    /**
+     * Check at the instantiation if there are minimum requirements.
+     * @return true if minimum requirements are satisfied
+     */
+    protected boolean checkMayBeConfigured() {
+        return ( this.sin != null && this.sout != null &&
+                this.maxWidth > 0 && this.maxHeight > 0 &&
+                this.overHeight >= 0 && this.enterIsRequired != EnterRequired.NOT_CHECKED
+                );
     }
 
     /**
      * Parse a charachter stream and fill this configuration.
-     * @see ConfigurationTool#getConfiguration(InputStream, Configuration)
+     * @see ConfigurationTool#getFromProperties(InputStream, Configuration)
      * @param configurationStream data for replicate the configuration
      * @param instream the input stream to use instead the current ins - optional
      * @param printStream the print stream to use instead the current outs- optional
-     * @return the configuration as in {@link ConfigurationTool#getConfiguration(InputStream, Configuration)}
+     * @return the configuration as in {@link ConfigurationTool#getFromProperties(InputStream, Configuration)}
      */
-    public void getConfiguration(InputStream configurationStream,
+    public Configuration getConfiguration(InputStream configurationStream,
                                  InputStream instream, PrintStream printStream) {
-        if (instream != null) {
-            this.sin = instream;
+        if (instream == null) {
+            instream = this.sin;
         }
-        if (printStream != null) {
-            this.sout = printStream;
+        if (printStream == null) {
+            printStream = this.sout;
         }
-        this.getConfiguration(configurationStream);
+        return this.cloneWith(instream, printStream, null, null,
+                null, null, null, null)
+                .getConfiguration(configurationStream);
     }
-    public void getConfiguration(InputStream configurationStream) {
-        ConfigurationTool.getFromProperties(configurationStream, this);
+    public Configuration getConfiguration(InputStream configurationStream) {
+        return ConfigurationTool.getFromProperties(configurationStream, this);
     }
 
     /**
@@ -99,8 +125,7 @@ public class Configuration {
         Configuration newConf = new Configuration(
                 streaminNew, streamoutNew,
                 maxwidthNew, maxheightNew,
-                overheightNew, lineinterruptedNew);
-        newConf.enterIsRequired = enterIsRequiredNew;
+                overheightNew, lineinterruptedNew, enterIsRequiredNew);
         newConf.configured = configuredNew;
         return newConf;
     }
@@ -193,15 +218,20 @@ public class Configuration {
                 ?1
                 :0);
     }
+    protected EnterRequired getEnterIsRequired() { return this.enterIsRequired; }
     /*
      * This is an irregular setter: this flag can be only activate.
      */
-    public void setEnterRequired(int howMuchCharactersToSkip) {
-        enterIsRequired =
+    public Configuration setEnterRequired(int howMuchCharactersToSkip) {
+        EnterRequired enterIsRequiredNew =
                 (howMuchCharactersToSkip==0)
                 ? EnterRequired.NOT_REQUIRED
                 :((howMuchCharactersToSkip==1)
                 ? EnterRequired.ENTER_REQUIRED
                 : EnterRequired.ENTER_REQUIRED_DOUBLE);
+        return this.cloneWith(null,null,
+                null,null,
+                null,null,
+                enterIsRequiredNew,null);
     }
 }

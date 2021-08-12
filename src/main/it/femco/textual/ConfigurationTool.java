@@ -3,13 +3,18 @@ package it.femco.textual;
 import it.femco.textual.panel.Pos;
 import it.femco.textual.panel.Size;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 public class ConfigurationTool {
     private static final boolean FOR_CONFIGURATION = false;
     private static final boolean END_CONFIGURATION = true;
+
+    public static String DEFAULT_CONFIG_FILE = "textualpanel.properties";
 
     // Properties props
     public static final String PROP_MAX_WIDTH = "dimensions.max_width";
@@ -46,10 +51,10 @@ public class ConfigurationTool {
         return "press a key "+queue;
     }
     private ConfigurationTool doConfigurationWizard() {
-        boolean interrupted=true;
         int width=50, height=20;
 
         // sondaggio iniziale
+        log.fine("Start configuration wizard");
         panel.rawprint(panel.newline+"  It seems that your panel is not configured, yet."
                 +panel.newline+"  Now start the configuration procedure."
                 +panel.newline+"  Press a key to start (may be needed the ENTER, if nothing happen)"
@@ -89,6 +94,7 @@ public class ConfigurationTool {
         } else {
             panel.rawprint(panel.newline+"  A default value will be used to configure the panel.");
         }
+        log.fine(String.format("check conf for %d x %d panel", width, height));
         panel.rawprint(panel.newline+
                 String.format("Now a %d x %d panel will be checked. "+pressAKeyMessage("to start"),
                         width, height));
@@ -151,8 +157,8 @@ public class ConfigurationTool {
                     if (newheight == height) {
                         break;
                     }
-                    panel.rawprint(panel.newline+"It seems that "+String.valueOf(height)+
-                            " was too much, set "+String.valueOf(newheight)+". Check it again ...");
+                    panel.rawprint(panel.newline+"It seems that "+height+
+                            " was too much, set "+newheight+". Check it again ...");
                     height = newheight;
                     panel.inputChar();
                 } else {
@@ -177,6 +183,10 @@ public class ConfigurationTool {
                     String.format("Can you see the grid %d x %d ? [y/n]", width, height));
         } while ('n' == panel.inputYN(c -> panel.rawprint("Only y or n:")>0?0:1));
 
+        log.fine(String.format("configured with %d%s x %d panel%s",
+                configuration.maxColumns(), (configuration.isInterrupted()?" [intr]":""),
+                configuration.maxRows(), (configuration.isRequiredEnterChecked() && configuration.isRequiredEnter()
+                ?", ENTER required":"")));
         showConfiguration(this.configuration, END_CONFIGURATION,
                 "This will be your textual panel ("+pressAKeyMessage("):"));
         panel.waitAChar();
@@ -187,6 +197,7 @@ public class ConfigurationTool {
     private void showConfiguration(Configuration conf, boolean endConfiguration, String message) {
         Size dim = conf.getSize();
         // draw space over the panel
+        panel.rawprint(panel.newline);
         for (int i = (Integer.max(0, conf.overHeight())); i > 0; i--) {
             if (!endConfiguration) {
                 panel.rawprint( String.format("%3d", i));
@@ -201,6 +212,11 @@ public class ConfigurationTool {
         Pos messagePosition = new Pos(
                 Integer.min(dim.w()-message.length(), 7),
                 Integer.max(dim.h()-4, 0));
+        if (messagePosition.x()<0) {
+            // I have a very short console
+            panel.rawprint(panel.newline+message);
+            panel.waitAChar();
+        }
         for (int y = 0; y < dim.h(); y++) {
             for (int x = 0; x < dim.w(); x++) {
                 if (x==messagePosition.x() && y==messagePosition.y()) {
@@ -386,11 +402,11 @@ public class ConfigurationTool {
 
     /**
      * Version with explicit parameters for streams.
-     * @see ConfigurationTool#getConfiguration(InputStream, Configuration)
-     * @param configurationStream data for replicate the configuration
-     * @param instream the input stream to use
-     * @param printStream the print stream to use
-     * @return the configuration as in {@link ConfigurationTool#getConfiguration(InputStream, Configuration)}
+     * @see ConfigurationTool#getFromProperties(InputStream, Configuration)
+     * @param propertiesSource data for replicate the configuration
+     * @param inps the input stream to use
+     * @param oups the print stream to use
+     * @return the configuration as in {@link ConfigurationTool#getFromProperties(InputStream, Configuration)}
      */
     public static Configuration getFromProperties(InputStream propertiesSource, InputStream inps, PrintStream oups) {
         return getFromProperties(propertiesSource, new Configuration(inps, oups));
@@ -448,7 +464,7 @@ public class ConfigurationTool {
         confProp.setProperty(PROP_MAX_HEIGHT, Integer.toString(config.maxRows()));
         confProp.setProperty(PROP_OVERHEIGHT, Integer.toString(config.overHeight()));
         confProp.setProperty(PROP_LINE_INTR, Boolean.toString(config.isInterrupted()));
-        confProp.setProperty(PROP_ENTER_REQ, config.enterIsRequired.name());
+        confProp.setProperty(PROP_ENTER_REQ, config.getEnterIsRequired().name());
 
         try {
             confProp.store(output, "Textual Panel Configuration");

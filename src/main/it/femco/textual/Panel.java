@@ -1,5 +1,7 @@
 package it.femco.textual;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.function.Function;
 
 /**
@@ -32,7 +34,14 @@ public interface Panel {
 
     int maxRows();
 
-    boolean configure(CharSequence s);
+    /**
+     * Force the load of the configuration if exists or
+     * configuration wizard referencing a customizable working directory.
+     * @param configurationDir optional Path to the working dir, if it's omitted it will be "."
+     * @return true if configuration wizard return a configured configuration.
+     */
+    boolean configure(Path configurationDir);
+    default boolean configure() { return this.configure(Paths.get(".")); }
 
     Configuration getConfiguration();
 
