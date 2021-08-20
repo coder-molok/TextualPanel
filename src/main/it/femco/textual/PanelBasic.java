@@ -179,7 +179,7 @@ public class PanelBasic implements Panel {
                     else if (sin.markSupported()) sin.reset();
                 }
                 if (enterLength>=0) {
-                    configuration.setEnterRequired(enterLength);
+                    configuration = configuration.setEnterRequired(enterLength);
                 }
             } else if (configuration.isRequiredEnterChecked()) {
                 // the 'enter' required is already proved, remove the line terminator
@@ -198,6 +198,7 @@ public class PanelBasic implements Panel {
         char achar;
         try {
             achar = (char) this.sin.read();
+            if (achar=='\uFFFF') throw new EOFException("The input stream is ended.");
         } catch (IOException e) {
             e.printStackTrace();
             achar = '\0';

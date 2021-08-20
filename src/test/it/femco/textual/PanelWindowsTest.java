@@ -121,7 +121,7 @@ public class PanelWindowsTest {
 
     @Test
     public void configuration_known_dims() throws Exception {
-        String preemptedinput = "\ny15,10\n\nnnn\ny10\nny\n";
+        String preemptedinput = " y15,10\n nnn y10\n n y  ";
         InputStream input = new ByteArrayDelayedInputStream(preemptedinput.getBytes());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream output = new PrintStream(new BufferedOutputStream(baos));
@@ -133,12 +133,8 @@ public class PanelWindowsTest {
         assertTrue(tp.open(2, 2).isOpened());
 
         assertTrue(baos.toString().contains("This will be your textual panel (press "));
-        assertFalse(tp.isOpened());
-        assertEquals(0, tp.maxColumns());
-        assertEquals(0, tp.maxRows());
-        assertSame(conf, tp.getConfiguration());
-        assertEquals(15, tp.maxColumns());
-        assertEquals(10, tp.maxRows());
+        assertEquals(2, tp.maxColumns());
+        assertEquals(2, tp.maxRows());
     }
 
     @Test

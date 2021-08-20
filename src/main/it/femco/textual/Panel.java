@@ -14,6 +14,8 @@ public interface Panel {
     public final static char NEWLINE_CHAR = '\n';
     public final static char RETURN_CHAR = '\r';
     public final static char CANCEL_CHAR = '\u0018';
+    // VLT are Very Little Terminals.
+    public static char VLT_CONTINUE_CHAR = '\u00bb';
 
     public final static String VOID_STRING = String.valueOf(VOID_CHAR);
     public final static String EMPTY_STRING = "";
