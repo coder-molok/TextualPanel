@@ -309,7 +309,7 @@ public class ConfigurationTool {
                     if (newheight == height) {
                         break;
                     }
-                    printAware(Panel.newline+mesmat("config.column.too+h+n",height,newheight);
+                    printAware(Panel.newline+mesmat("config.column.too+h+n",height,newheight));
                     height = newheight;
                     printAware(messag("config.restart"));
                     panel.inputChar();
@@ -340,7 +340,7 @@ public class ConfigurationTool {
                 configuration.maxRows(), (configuration.isRequiredEnterChecked() && configuration.isRequiredEnter()
                 ?", ENTER required":"")));
         showConfiguration(this.configuration, END_CONFIGURATION,
-                "This will be your textual panel ("+pressAKeyMessage("):"));
+                "This will be your textual panel ("+pressAKeyMessage()+"):");
         panel.waitAChar();
         this.configuration.validate(true);
         return this;
